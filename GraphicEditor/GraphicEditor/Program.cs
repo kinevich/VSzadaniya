@@ -11,12 +11,10 @@ namespace GraphicEditor
             public virtual double X { get; set; }
             public virtual double Y { get; set; }
             public abstract double Area();
-            public virtual void SetCoordinates()
+            public virtual void SetCoordinates(double x, double y)
             {
-                Console.Write("Enter X: ");
-                X = Convert.ToSingle(Console.ReadLine());
-                Console.Write("Enter Y: ");
-                Y = Convert.ToSingle(Console.ReadLine());
+                X = x;
+                Y = y;
             }
         }
 
@@ -118,9 +116,9 @@ namespace GraphicEditor
                 Console.WriteLine();
             }
 
-            public void ChangeCoordinates(int index)
+            public void ChangeCoordinates(int index, double x, double y)
             {
-                list[index].SetCoordinates();
+                list[index].SetCoordinates(x, y);
             }
         }
         static void Main(string[] args)
@@ -134,6 +132,7 @@ namespace GraphicEditor
             ge.AddItem(triangle1);
             ge.AddItem(circle1);
             ge.AddItem(rectangle1);
+            ge.ChangeCoordinates(1, 4, 5);
             ge.GetInformationOfAll();
             ge.AreaOfAll();
             ge.RemoveItem(2);
