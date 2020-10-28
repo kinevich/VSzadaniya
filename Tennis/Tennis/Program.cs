@@ -6,24 +6,12 @@ namespace Tennis
 {
     class Player
     {
+        public Player(string name)
+        {
+            Name = name;
+        }
         public string Name { get; set; }
         public int Points { get; set; }
-    }
-
-    class Player1 : Player
-    {
-        public Player1 (string name)
-        {
-            Name = name;
-        }
-    }
-
-    class Player2 : Player
-    {
-        public Player2 (string name)
-        {
-            Name = name;
-        }
     }
 
     class Actions
@@ -100,8 +88,8 @@ namespace Tennis
     {
         static void Main(string[] args)
         {
-            Player1 mike = new Player1("Mike");
-            Player2 kyle = new Player2("Kyle");
+            Player mike = new Player("Mike");
+            Player kyle = new Player("Kyle");
             Actions actions = new Actions();
             for (int i = 0; i < 100; ++i)
             {
