@@ -14,7 +14,7 @@ namespace River
         static void Main(string[] args)
         {
             Actions actions = new Actions();
-            actions.Start(); //ВВЕСТИ КОЛ-ВО РЫБ И ТД
+            actions.Start(50, 30, 0.1); //ВВЕСТИ КОЛ-ВО РЫБ И ТД
         }
     }
 
@@ -23,9 +23,9 @@ namespace River
         public double X;
         public double Y;
         public double Z;
-        public double weight;
-        public double ruddCount;
-        public double howManyTimesPikeHungry;
+        public double Weight;
+        public double RuddCount;
+        public double HowManyTimesPikeHungry;
     }
 
     class Rudd : Fish
@@ -50,13 +50,14 @@ namespace River
 
     class Actions
     {
-        private List<Fish> _fishes = new List<Fish>();
-        private int _border = 50; // ГРАНИЦА
-        private double _pikeSpeed = 5;
-        private double _ruddSpeed = 2;
-        private int _pikeTimesToDie = 2;
-        private int _ruddTimesToBorn = 2;
-
+        List<Fish> _fishes = new List<Fish>();
+        int _border = 100; // ГРАНИЦА
+        double _pikeSpeed = 5;
+        double _ruddSpeed = 2;
+        int _pikeTimesToDie = 2;
+        int _ruddTimesToBorn = 2;
+        Random random = new Random();
+        
         public void Start(int numberOfFishes, double pikeEatDistance, double ruddBornDistance)
         {
             CreateFishes(numberOfFishes);
@@ -72,31 +73,30 @@ namespace River
 
         private void RuddsBorn(double ruddBornDistance)
         {
-            foreach (Fish f in _fishes.ToList())
+            foreach (Fish r1 in _fishes.ToList())
             {
-                if ((f.GetType()).ToString() == "River.Rudd") // условие для красноперок(когда две красноперки рядом 2 шага, то рождается новая)
+                if ((r1.GetType()).ToString() == "River.Rudd") // условие для красноперок(когда две красноперки рядом 2 шага, то рождается новая)
                 {
-                    foreach (Fish r in _fishes.ToList())
+                    foreach (Fish r2 in _fishes.ToList())
                     {
-                        if ((r.GetType()).ToString() == "River.Rudd")
+                        if ((r2.GetType()).ToString() == "River.Rudd")
                         {
-                            double distanceBetweenRudds = Math.Sqrt((f.X - r.X) * (f.X - r.X) + (f.Y - r.Y) * (f.Y - r.Y) + (f.Z - r.Z) * (f.Z - r.Z));
-                            if (distanceBetweenRudds == 0)
+                            if (DistBetwFishes(r1, r2) == 0)
                             {
                                 break;
                             }
-                            else if (distanceBetweenRudds < ruddBornDistance)
+                            else if (DistBetwFishes(r1, r2) < ruddBornDistance)
                             {
-                                ++r.ruddCount;
-                                ++f.ruddCount;
+                                ++r1.RuddCount;
+                                ++r2.RuddCount;
                             }
 
-                            if (r.ruddCount == _ruddTimesToBorn && f.ruddCount == _ruddTimesToBorn)
+                            if (r1.RuddCount == _ruddTimesToBorn && r2.RuddCount == _ruddTimesToBorn)
                             {
                                 AddRudd();
                                 Console.WriteLine("Rudd was born");
-                                r.ruddCount = 0;
-                                f.ruddCount = 0;
+                                r1.RuddCount = 0;
+                                r2.RuddCount = 0;
                                 break;
                             }
                         }
@@ -105,34 +105,39 @@ namespace River
             }
         }
 
+        private double DistBetwFishes(Fish f1, Fish f2)
+        {
+            return Math.Sqrt((f1.X - f2.X) * (f1.X - f2.X) + (f1.Y - f2.Y) * (f1.Y - f2.Y) + (f1.Z - f2.Z) * (f1.Z - f2.Z));
+        }
+
         private void PikesEatRudds(double pikeEatDistance)
         {
-            foreach (Fish f in _fishes.ToList())
+            foreach (Fish p in _fishes.ToList())
             {
-                if ((f.GetType()).ToString() == "River.Pike")  // условие для щук(когда съедает красноперку, то вес увеличивается, если не ела 2 шага, то умирает)
+                if ((p.GetType()).ToString() == "River.Pike")  // условие для щук(когда съедает красноперку, то вес увеличивается, если не ела 2 шага, то умирает)
                 {
                     foreach (Fish r in _fishes.ToList())
                     {
                         if ((r.GetType()).ToString() == "River.Rudd")
                         {
-                            double distanceBetweenPandR = Math.Sqrt((f.X - r.X) * (f.X - r.X) + (f.Y - r.Y) * (f.Y - r.Y) + (f.Z - r.Z) * (f.Z - r.Z));
-                            if (distanceBetweenPandR < pikeEatDistance)
+                            if (DistBetwFishes(p, r) < pikeEatDistance)
                             {
                                 _fishes.Remove(r);
                                 Console.WriteLine("Rudd died");
-                                ++f.weight;
+                                ++p.Weight;
+                                p.HowManyTimesPikeHungry = 0;
                                 break;
                             }
                             else
                             {
-                                ++f.howManyTimesPikeHungry;
+                                ++p.HowManyTimesPikeHungry;
                                 break;
                             }
                         }
                     }
-                    if (f.howManyTimesPikeHungry == _pikeTimesToDie)
+                    if (p.HowManyTimesPikeHungry == _pikeTimesToDie)
                     {
-                        _fishes.Remove(f);
+                        _fishes.Remove(p);
                         Console.WriteLine("Pike died");
                     }
                 }
@@ -144,7 +149,6 @@ namespace River
             {
                 if ((f.GetType()).ToString() == "River.Pike") // у щук
                 {
-                    Random random = new Random();
                     int caseSwitch = random.Next(2);
                     switch (caseSwitch)
                     {
@@ -158,7 +162,6 @@ namespace River
                 }
                 else if ((f.GetType()).ToString() == "River.Rudd") //у красноперок
                 {
-                    Random random = new Random();
                     int caseSwitch = random.Next(2);
                     switch (caseSwitch)
                     {
@@ -183,7 +186,6 @@ namespace River
 
         private void RuddOrPike()
         {
-            Random random = new Random();
             int i = random.Next(2);
             if (i == 0)
             {
@@ -212,7 +214,6 @@ namespace River
         private double[] randomXYZ()
         {
             double[] array = new double[3];
-            Random random = new Random();
             array[0] = random.Next(_border);
             array[1] = random.Next(_border);
             array[2] = random.Next(_border);
