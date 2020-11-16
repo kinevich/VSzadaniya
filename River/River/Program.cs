@@ -107,7 +107,11 @@ namespace River
                         ++i;
                 }
                 if (i == timesToBorn)
+                {
                     Riv.Fishes.Add(new Rudd(Riv));
+                    Console.WriteLine("Rudd born");
+                }
+                   
             }
 
         }
