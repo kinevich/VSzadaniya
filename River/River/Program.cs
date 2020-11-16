@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace River
 {
@@ -171,8 +172,8 @@ namespace River
 
     class River
     {
-        public static int Border = 45;  // ГРАНИЦА
-        public static int NumberOfFishes = 50;  // КОЛ-ВО РЫБ
+        public static int Border = 50;  // ГРАНИЦА
+        public static int NumberOfFishes = 20;  // КОЛ-ВО РЫБ
 
         public List<Fish> Fishes = new List<Fish>();
         Random random = new Random();
@@ -192,13 +193,14 @@ namespace River
                     switch (f)
                     {
                         case Pike p:
-                            p.Eat(1, 3);
+                            p.Eat(1, 3); //PikeEatDist; timesToDie
                             break;
                         case Rudd r:
-                            r.Born(1, 3, pairs);
+                            r.Born(1, 3, pairs);  // bornDist, timesToBorn
                             break;
                     }
                 }
+                Thread.Sleep(100);
             }
         }
         private void CreateFishes()
