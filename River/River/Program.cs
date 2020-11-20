@@ -29,29 +29,15 @@ namespace River
 
         public virtual void Move()
         {
-            int caseSwitch = _random.Next(2);
-            switch (caseSwitch)
+            if (_random.Next(2) == 0)
             {
-                case 0:
-                    ChangeCoordinatesPositive();
-                    break;
-                case 1:
-                    ChangeCoordinatesNegative();
-                    break;
+                Speed *= -1;
             }
+
+            ChangeCoordinates();
         }
 
-        private void ChangeCoordinatesNegative()
-        {
-            _x -= Speed;
-            _y -= Speed;
-            _z -= Speed;
-            _x = BorderCheck(_x);
-            _y = BorderCheck(_y);
-            _z = BorderCheck(_z);
-        }
-
-        private void ChangeCoordinatesPositive()
+        private void ChangeCoordinates()
         {
             _x += Speed;
             _y += Speed;
@@ -65,13 +51,13 @@ namespace River
         {
             if (fishCoordinate > River.Border)
             {
-                return fishCoordinate -= Speed;
+                return fishCoordinate - Speed;
             }
             else if (fishCoordinate < 0)
             {
-                return fishCoordinate -= fishCoordinate;
+                return 0;
             }
-            else return 0;
+            else return fishCoordinate;
         }
         
         protected double DistanceBetweenFishes(Fish f1, Fish f2)
@@ -99,26 +85,38 @@ namespace River
             base.Move();
             foreach (Fish f in River.Fishes.ToList())
             {
-                if (f is Rudd r)
+                if (f is Rudd r && r != this && DistanceBetweenFishes(this, r) < _bornDist)
                 {
-                    if (DistanceBetweenFishes(this, r) < _bornDist)
+                    Pair p = new Pair(this, r);
+                    _pairs.List.Add(p);
+
+                    foreach (Pair pair in _pairs.List.ToList())
                     {
-                        _pairs.list.Add(new Pair(this, r));
-                    }
+                        if (pair.R1 == this && pair.R2 == r && pair != p)
+                        {
+                            _pairs.List.Remove(p);
+                            ++pair.Count;
+                        }
+                        if (pair.Count == _timesToBorn)
+                        {
+                            Console.WriteLine("Rudd was born");
+                            pair.Count = 0;
+                        }
+                    }                    
                 }
             }
-            foreach (Pair pair1 in _pairs.list.ToList())
+            foreach (Pair pair1 in _pairs.List.ToList())
             {
-                foreach (Pair pair2 in _pairs.list.ToList())
+                foreach (Pair pair2 in _pairs.List.ToList())
                 {
                     if (pair1.R1 == pair2.R2 && pair1.R2 == pair2.R1)
-                        _pairs.list.Remove(pair2);
+                        _pairs.List.Remove(pair2);
                 }
             }
-            foreach (Pair pair1 in _pairs.list.ToList())
+            foreach (Pair pair1 in _pairs.List.ToList())
             {
                 int i = 0;
-                foreach (Pair pair2 in _pairs.list.ToList())
+                foreach (Pair pair2 in _pairs.List.ToList())
                 {
                     if (pair1.R1 == pair2.R1 && pair1.R2 == pair2.R2)
                         ++i;
@@ -138,6 +136,8 @@ namespace River
 
         public Rudd R2 { get; private set; }
 
+        public int Count { get; set; }
+
         public Pair(Rudd r1, Rudd r2)
         {
             R1 = r1; R2 = r2;
@@ -146,7 +146,7 @@ namespace River
 
     class Pairs
     {
-        public List<Pair> list = new List<Pair>();
+        public List<Pair> List = new List<Pair>();
     }
 
     class Pike : Fish
@@ -168,17 +168,14 @@ namespace River
             base.Move();
             foreach (Fish f in River.Fishes.ToList())
             {
-                if (f is Rudd r)
+                if (f is Rudd r && DistanceBetweenFishes(this, r) < _pikeEatDist)
                 {
-                    if (DistanceBetweenFishes(this, r) < _pikeEatDist)
-                    {
-                        River.Fishes.Remove(r);
-                        ++_weight;
-                        _timesHungry = 0;
-                        Console.WriteLine("Rudd died");
-                        _hungry = false;
-                        break;
-                    }
+                    River.Fishes.Remove(r);
+                    ++_weight;
+                    _timesHungry = 0;
+                    Console.WriteLine("Rudd died");
+                    _hungry = false;
+                    break;                    
                 }
             }
             if (_hungry)
@@ -196,7 +193,7 @@ namespace River
     {
         public static int Border = 50;  // ГРАНИЦА
 
-        public static int NumberOfFishes = 40;  // КОЛ-ВО РЫБ
+        public static int NumberOfFishes = 100;  // КОЛ-ВО РЫБ
 
         public List<Fish> Fishes = new List<Fish>();
 
