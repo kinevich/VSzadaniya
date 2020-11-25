@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 
@@ -88,27 +89,35 @@ namespace River
                 if (f is Rudd r && r != this && DistanceBetweenFishes(this, r) < _bornDist)
                 {
                     Pair p = new Pair(this, r);
-                    _pairs.List.Add(p);
 
-                    foreach (Pair pair in _pairs.List.ToList())
+                    if (_pairs.List == null)
+                        _pairs.List.Add(p);
+                    else
                     {
-                        if (pair.R1 == this && pair.R2 == r && pair != p)
+                        bool inList = false;;
+                        foreach (Pair pair in _pairs.List.ToList())
                         {
-                            _pairs.List.Remove(p);
-                            ++pair.Count;
+                            if (pair.Equals(p))
+                            {
+                                ++pair.Count;
+                                inList = true;
+                            }
+                                
+                            if (pair.Count == _timesToBorn)
+                            {
+                                Console.WriteLine("Rudd was born");
+                                pair.Count = 0;
+                            }
                         }
-                        if (pair.Count == _timesToBorn)
-                        {
-                            Console.WriteLine("Rudd was born");
-                            pair.Count = 0;
-                        }
-                    }                    
+                        if (!inList)
+                            _pairs.List.Add(p);
+                    }
                 }
             }
         }         
     }
     
-    class Pair
+    class Pair : IEquatable<Pair>
     {
         public Rudd R1 { get; private set; }
 
@@ -119,6 +128,20 @@ namespace River
         public Pair(Rudd r1, Rudd r2)
         {
             R1 = r1; R2 = r2;
+        }
+
+        public bool Equals(Pair other)
+        {
+            if (other == null)
+                return false;
+
+            if (other.R1 == R1 && other.R2 == R2 && other != this)
+                return true;
+
+            if (other.R1 == R2 && other.R2 == R1 && other != this)
+                return true;
+
+            return false;
         }
     }
 
