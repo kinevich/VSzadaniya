@@ -105,28 +105,6 @@ namespace River
                     }                    
                 }
             }
-            foreach (Pair pair1 in _pairs.List.ToList())
-            {
-                foreach (Pair pair2 in _pairs.List.ToList())
-                {
-                    if (pair1.R1 == pair2.R2 && pair1.R2 == pair2.R1)
-                        _pairs.List.Remove(pair2);
-                }
-            }
-            foreach (Pair pair1 in _pairs.List.ToList())
-            {
-                int i = 0;
-                foreach (Pair pair2 in _pairs.List.ToList())
-                {
-                    if (pair1.R1 == pair2.R1 && pair1.R2 == pair2.R2)
-                        ++i;
-                }
-                if (i == _timesToBorn)
-                {
-                    River.Fishes.Add(new Rudd(River, _pairs));
-                    Console.WriteLine("Rudd born");
-                }
-            }
         }         
     }
     
