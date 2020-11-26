@@ -15,7 +15,7 @@ namespace River
 
         private Random _random = new Random();
 
-        private Pairs _pairs = new Pairs();
+        private List<Pair> _pairs = new List<Pair>();
 
         public void Start()
         {

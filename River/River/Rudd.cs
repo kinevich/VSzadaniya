@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace River
 {
     class Rudd : Fish
     {
-        public Rudd(River river, Pairs pairs) : base(river)
+        public Rudd(River river, List<Pair> pairs) : base(river)
         { 
             Speed = 2;
             _pairs = pairs;
         }
 
-        private Pairs _pairs;
+        private List<Pair> _pairs;
 
         private const double _bornDist = 5;
 
@@ -26,13 +27,11 @@ namespace River
                 {
                     Pair p = new Pair(this, r);
 
-                    bool inList = false; 
-                    foreach (Pair pair in _pairs.List.ToList())
+                    foreach (Pair pair in _pairs.ToList())
                     {
                         if (pair.Equals(p))
                         {
                             ++pair.Count;
-                            inList = true;
                         }
 
                         if (pair.Count == _timesToBorn)
@@ -41,8 +40,8 @@ namespace River
                             pair.Count = 0;
                         }
                     }
-                    if (!inList)
-                        _pairs.List.Add(p);
+                    if (_pairs.All(pair => !pair.Equals(p)))
+                        _pairs.Add(p);
                 }
             }
         }         
