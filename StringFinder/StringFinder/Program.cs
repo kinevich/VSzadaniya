@@ -29,7 +29,7 @@ namespace StringFinder
         static void Main(string[] args)
         {
             string directoryPath = @"E:\Test_StringFinder";
-            string text = "text";
+            string text = "kostya";
             StringFinder stringFinder = new StringFinder();
 
             stringFinder.Found += StringFinder_Found;
