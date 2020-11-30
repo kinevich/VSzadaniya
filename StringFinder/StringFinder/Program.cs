@@ -18,7 +18,7 @@ namespace StringFinder
                     string[] lines = File.ReadAllLines(filePath);
                     var lineNumber = Array.IndexOf(lines, text);
                     if (lineNumber >= 0)
-                        Found(fileName, lineNumber);
+                        Found?.Invoke(fileName, lineNumber);
                 }
             }
         }
