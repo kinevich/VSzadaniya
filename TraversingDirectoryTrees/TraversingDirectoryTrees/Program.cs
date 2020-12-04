@@ -15,12 +15,9 @@ namespace TraversingDirectoryTrees
         {
             string[] directories = Directory.GetDirectories(path);
 
-            if (directories == null || directories.Length == 0)
-                return;
-
             foreach (string dir in directories)
             {
-                Console.WriteLine(dir);
+                Console.WriteLine(Path.GetDirectoryName(dir));
                 Traverse(dir);
             }
         }
