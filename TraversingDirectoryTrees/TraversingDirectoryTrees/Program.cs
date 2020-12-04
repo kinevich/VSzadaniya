@@ -3,8 +3,6 @@ using System.IO;
 
 namespace TraversingDirectoryTrees
 {
-
-
     class Program
     {
         static void Main(string[] args)
