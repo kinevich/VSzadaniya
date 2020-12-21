@@ -10,41 +10,39 @@ namespace LinkedList
 
             linkedList.AddLast(3);
             linkedList.AddLast(4);
+            linkedList.AddLast(2);
+            linkedList.AddLast(6);
+            linkedList.AddLast(5);
 
-            Console.WriteLine(linkedList._head.Next.Data);
-            //linkedList.AddLast(2);
-            //linkedList.AddLast(6);
-            //linkedList.AddLast(5);
+            linkedList.PrintList();
+            Console.WriteLine();
 
-            //linkedList.PrintList();
-            //Console.WriteLine();
+            linkedList.Remove(0);
 
-            //linkedList.Remove(0);
+            linkedList.PrintList();
+            Console.WriteLine();
 
-            //linkedList.PrintList();
-            //Console.WriteLine();
+            linkedList.Remove(3);
 
-            //linkedList.Remove(3);
+            linkedList.PrintList();
+            Console.WriteLine();
 
-            //linkedList.PrintList();
-            //Console.WriteLine();
+            linkedList.Remove(1);
 
-            //linkedList.Remove(1);
+            linkedList.PrintList();
+            Console.WriteLine();
 
-            //linkedList.PrintList();
-            //Console.WriteLine();
+            linkedList.AddLast(50);
+            linkedList.AddLast(234);
 
-            //linkedList.AddLast(50);
-            //linkedList.AddLast(234);
-
-            //linkedList.PrintList();
-            //Console.WriteLine();
+            linkedList.PrintList();
+            Console.WriteLine();
         }
     }
 
     class LinkedList<T>
     {
-        public Node<T> _head;
+        private Node<T> _head;
 
         private Node<T> _last;
 
@@ -79,13 +77,21 @@ namespace LinkedList
         public void Remove(int index)
         {
             Node<T> runner = _head;
+
+            if (index == 0)
+            {
+                _head = _head.Next;
+                return;
+            }
+
             int count = 0;
             while (runner != null)
             {
-                if (index == count)
+                if (index - 1 == count)
                 {
-                    Node<T> removeItem = Find(node => node == runner);
-                    removeItem = removeItem.Next;
+                    var deletingItem = runner.Next;
+                    runner.Next = runner.Next.Next;
+                    deletingItem.Next = null;
                     return;
                 }
                 ++count;
