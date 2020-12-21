@@ -5,50 +5,61 @@ namespace LinkedList
     class Program
     {
         static void Main(string[] args)
-        {
+         {
             LinkedList<int> linkedList = new LinkedList<int>();
 
             linkedList.AddLast(3);
             linkedList.AddLast(4);
-            linkedList.AddLast(2);
-            linkedList.AddLast(6);
-            linkedList.AddLast(5);
 
-            linkedList.Remove(0);
+            Console.WriteLine(linkedList._head.Next.Data);
+            //linkedList.AddLast(2);
+            //linkedList.AddLast(6);
+            //linkedList.AddLast(5);
 
-            linkedList.PrintList();
-            Console.WriteLine();
+            //linkedList.PrintList();
+            //Console.WriteLine();
 
-            linkedList.Remove(3);
+            //linkedList.Remove(0);
 
-            linkedList.PrintList();
-            Console.WriteLine();
+            //linkedList.PrintList();
+            //Console.WriteLine();
 
-            linkedList.Remove(1);
+            //linkedList.Remove(3);
 
-            linkedList.PrintList();
-            Console.WriteLine();
+            //linkedList.PrintList();
+            //Console.WriteLine();
 
-            linkedList.AddLast(50);
-            linkedList.AddLast(234);
+            //linkedList.Remove(1);
 
-            linkedList.PrintList();
-            Console.WriteLine();
+            //linkedList.PrintList();
+            //Console.WriteLine();
+
+            //linkedList.AddLast(50);
+            //linkedList.AddLast(234);
+
+            //linkedList.PrintList();
+            //Console.WriteLine();
         }
     }
 
     class LinkedList<T>
     {
-        private Node<T> _head;
+        public Node<T> _head;
 
-        private int _count;
+        private Node<T> _last;
 
         public void AddLast(T data)
         {
-            Node<T> node = new Node<T>(data, _count);
-            node.Next = _head;
-            _head = node;
-            ++_count;
+            Node<T> node = new Node<T>(data);
+
+            if (_head == null)
+            {
+                _head = node;
+                _last = node;
+            }
+
+            _last.Next = node;
+            _last = node;          
         }
 
         public Node<T> Find(Func<Node<T>, bool> predicate)
@@ -67,33 +78,18 @@ namespace LinkedList
 
         public void Remove(int index)
         {
-            Node<T> removeNode = Find(node => node.Index == index);
-            if (removeNode != null)
+            Node<T> runner = _head;
+            int count = 0;
+            while (runner != null)
             {
-                if (_count == 1)
+                if (index == count)
                 {
-                    _head = null;
-                    _count = 0;
+                    Node<T> removeItem = Find(node => node == runner);
+                    removeItem = removeItem.Next;
+                    return;
                 }
-                else if (removeNode.Index == _count - 1)
-                {
-                    Node<T> penult = Find(node => node.Index == _count - 2);
-                    _head = penult;
-                    _count -= 1;
-                }
-                else
-                {                    
-                    Node<T> runner = _head;
-                    while (runner != removeNode) // меняю индексы элементов, которые идут после удаляемого
-                    {
-                        runner.Index -= 1;
-                        runner = runner.Next;
-                    }
-                    Node<T> replace = Find(node => node.Index == index); // меняем значения на месте удаленной
-                    Node<T> replaceNext = Find(node => node.Index == index - 1);
-                    replace.Next = replaceNext;
-                    _count -= 1;
-                }
+                ++count;
+                runner = runner.Next;
             }
         }
 
@@ -112,15 +108,12 @@ namespace LinkedList
     {
         public T Data { get; set; }
 
-        public int Index { get; set; }
-
         public Node<T> Next { get; set; }
 
-        public Node(T data, int index)
+        public Node(T data)
         {
             Data = data;
             Next = null;
-            Index = index;
         }
     }
 }
