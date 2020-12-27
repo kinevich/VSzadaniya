@@ -5,7 +5,7 @@ namespace LinkedList
     class Program
     {
         static void Main(string[] args)
-         {
+        {
             LinkedList<int> linkedList = new LinkedList<int>();
 
             linkedList.AddLast(3);
@@ -55,9 +55,11 @@ namespace LinkedList
                 _head = node;
                 _last = node;
             }
-
-            _last.Next = node;
-            _last = node;          
+            else
+            {
+                _last.Next = node;
+                _last = node;
+            }        
         }
 
         public Node<T> Find(Func<Node<T>, bool> predicate)
@@ -89,6 +91,10 @@ namespace LinkedList
             {
                 if (index - 1 == count)
                 {
+                    if (runner.Next == _last)
+                    {
+                        _last = runner;
+                    }
                     var deletingItem = runner.Next;
                     runner.Next = runner.Next.Next;
                     deletingItem.Next = null;
@@ -101,12 +107,15 @@ namespace LinkedList
 
         public void PrintList()
         {
-            Node<T> runner = _head;
-            while (runner != null)
-            {
-                Console.WriteLine(runner.Data);
-                runner = runner.Next;
-            }
+            RecursivePrint(_head);
+        }
+
+        private void RecursivePrint(Node<T> node)
+        {
+            if (node == null)
+                return;
+            Console.WriteLine(node.Data);
+            RecursivePrint(node.Next);
         }
     }
 
