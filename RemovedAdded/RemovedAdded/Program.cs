@@ -58,22 +58,16 @@ namespace RemovedAdded
             Dictionary<int, int> removed = new Dictionary<int, int>();
             Dictionary<int, int> added = new Dictionary<int, int>();
 
-            if (originalDict.Count != 0)
+            foreach (KeyValuePair<int, int> kvp in originalDict)
             {
-                foreach (KeyValuePair<int, int> kvp in originalDict)
-                {
-                    if (!modifiedDict.ContainsKey(kvp.Key))
-                        removed.Add(kvp.Key, kvp.Value);
-                }
+                if (!modifiedDict.ContainsKey(kvp.Key))
+                    removed.Add(kvp.Key, kvp.Value);
             }
 
-            if (modifiedDict.Count != 0)
+            foreach (KeyValuePair<int, int> kvp in modifiedDict)
             {
-                foreach (KeyValuePair<int, int> kvp in modifiedDict)
-                {
-                    if (!originalDict.ContainsKey(kvp.Key))
-                        added.Add(kvp.Key, kvp.Value);
-                }
+                if (!originalDict.ContainsKey(kvp.Key))
+                    added.Add(kvp.Key, kvp.Value);
             }
 
             return new Tuple<Dictionary<int, int>, Dictionary<int, int>>(added, removed);
