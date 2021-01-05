@@ -19,40 +19,34 @@ namespace RemovedAdded
             Array.ForEach(modifiedCollection.ToArray(), Console.WriteLine);
             Console.WriteLine();
 
-            Tuple<IEnumerable<int>, IEnumerable<int>> tuple =
+            (IEnumerable<int> added, IEnumerable<int> removed) tuple =
                 GetAddedAndRemoved(collection, modifiedCollection);
 
             Console.WriteLine("Added");
-            Array.ForEach(tuple.Item1.ToArray(), Console.WriteLine);
+            Array.ForEach(tuple.added.ToArray(), Console.WriteLine);
             Console.WriteLine();
 
             Console.WriteLine("Removed");
-            Array.ForEach(tuple.Item2.ToArray(), Console.WriteLine);
+            Array.ForEach(tuple.removed.ToArray(), Console.WriteLine);
             Console.WriteLine();
         }
 
-        private static Tuple<IEnumerable<int>, IEnumerable<int>> GetAddedAndRemoved
+        private static (IEnumerable<int> added, IEnumerable<int> removed) GetAddedAndRemoved
             (IEnumerable<int> originalCollection, IEnumerable<int> modifiedCollection)
         {
-            HashSet<int> added = new HashSet<int>();
-            HashSet<int> removed = new HashSet<int>();
+            var existingItems = new HashSet<int>(originalCollection);
+            var added = new List<int>();
 
-            HashSet<int> original = originalCollection.ToHashSet();
-            HashSet<int> modified = modifiedCollection.ToHashSet();
-
-            foreach (int item in original)
+            foreach (int item in modifiedCollection)
             {
-                if (!modified.Contains(item))
-                    removed.Add(item);
+                if (existingItems.Contains(item))
+                    existingItems.Remove(item);
+                else
+                    added.Add(item);                
             }
 
-            foreach (int item in modified)
-            {
-                if (!original.Contains(item))
-                    added.Add(item);
-            }
-
-            return new Tuple<IEnumerable<int>, IEnumerable<int>>(added, removed);
+            var removed = existingItems.ToArray();
+            return (added.ToArray(), removed);
         }
     }
 }
