@@ -7,14 +7,14 @@ namespace FileWatcher
     {
         static void Main(string[] args)
         {
-            FileSystemWatcher watcher = new FileSystemWatcher(@"E:\Test");
+            //FileSystemWatcher watcher = new FileSystemWatcher(@"E:\Test");
 
-            watcher.EnableRaisingEvents = true;
+            //watcher.EnableRaisingEvents = true;
 
-            watcher.Changed += Watcher_Changed;
-            watcher.Renamed += Watcher_Renamed;
-            watcher.Deleted += Watcher_Deleted;
-            watcher.Created += Watcher_Created;
+            //watcher.Changed += Watcher_Changed;
+            //watcher.Renamed += Watcher_Renamed;
+            //watcher.Deleted += Watcher_Deleted;
+            //watcher.Created += Watcher_Created;
 
             Console.ReadLine();
         }

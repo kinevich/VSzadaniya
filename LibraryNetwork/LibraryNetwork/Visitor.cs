@@ -6,8 +6,12 @@ namespace LibraryNetwork
     {
         public Guid Id { get; }
 
-        public string FirstName { get; }
+        public string Name { get; } 
 
-        public string LastName { get; }
+        public Visitor(string name)
+        {
+            Name = name;
+            Id = Guid.NewGuid();
+        }
     }
 }
