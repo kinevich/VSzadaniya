@@ -9,7 +9,7 @@ namespace LibraryNetwork
         static void Main(string[] args)
         {
             (List<VisitorLibrary> visitorsLibrary, List<Visitor> visitors, List<Library> libraries,
-             List<District> districts, City city) = GetData();
+             List<District> districts, City city, List<Book> books, List<Genre> genres) = GetData();
 
             // 16 libraries, 5 districts
 
@@ -18,7 +18,9 @@ namespace LibraryNetwork
             //ListDistrictsDontHaveLibraries(libraries, districts);
             //ListAllVisitors(libraries, visitorsLibrary, visitors);
             //ListVisitorsByLibraries(libraries, visitors, visitorsLibrary);
-            ListVisitorsByDistricts(libraries, districts, visitors, visitorsLibrary);
+            //ListVisitorsByDistricts(libraries, districts, visitors, visitorsLibrary);
+            //ListVisitorsCountByDistricts(libraries, districts, visitorsLibrary);
+            ListBooksCountByGenres(books, genres);
         }
 
         private static void ListLibraryNames(List<Library> libraries)
@@ -30,14 +32,14 @@ namespace LibraryNetwork
             {
                 Console.WriteLine(libName);
             }
+
             Console.WriteLine();
         }
 
-        private static void ListGroupedLibrariesByDistricts(List<Library> libraries,
-                                                      List<District> districts)
+        private static void ListGroupedLibrariesByDistricts(List<Library> libraries, List<District> districts)
         {
             var query = from district in districts
-                        join library in libraries on
+                        join library in libraries on 
                         district.Id equals library.DistrictId into libGroup
                         select new { DistrictName = district.Name, Libraries = libGroup };
 
@@ -47,11 +49,11 @@ namespace LibraryNetwork
                 foreach (var library in group.Libraries)
                     Console.WriteLine($" {library.Name}");
             }
+
             Console.WriteLine();
         }
 
-        private static void ListDistrictsDontHaveLibraries(List<Library> libraries,
-                                                           List<District> districts)
+        private static void ListDistrictsDontHaveLibraries(List<Library> libraries, List<District> districts)
         {
             var query = from district in districts
                         join library in libraries on
@@ -63,12 +65,12 @@ namespace LibraryNetwork
             {
                 Console.WriteLine(disName);
             }
+
             Console.WriteLine();
         }
 
         private static void ListAllVisitors(List<Library> libraries, List<VisitorLibrary> visitorsLibrary, 
-                                            List<Visitor> visitors)
-                                            
+                                            List<Visitor> visitors)                                            
         {
             var query = from visitor in visitors
                         select visitor.Name;                        
@@ -77,6 +79,7 @@ namespace LibraryNetwork
             {
                 Console.WriteLine(visName);
             }
+
             Console.WriteLine();
         }
 
@@ -84,72 +87,116 @@ namespace LibraryNetwork
                                                        List<VisitorLibrary> visitorsLibrary)
 
         {
-            var query = from library in libraries
-                        join visitorLibrary in visitorsLibrary on
-                        library.Id equals visitorLibrary.LibraryId into visLibGroup
-                        select new { LibraryName = library.Name, visitorsLibrary = visLibGroup };
+            var visitorsByLibraries = from library in libraries
+                        join visitorLibrary in visitorsLibrary on library.Id equals visitorLibrary.LibraryId
+                        join visitor in visitors on visitorLibrary.VisitorId equals visitor.Id
+                        group visitor by library into g
+                        select new
+                        {
+                            LibraryName = g.Key.Name,
+                            Visitors = g.Select(v => v.Name)
+                        };
 
 
-            foreach(var group in query)
+            foreach(var visitorsByLibrary in visitorsByLibraries)
             {
-                Console.WriteLine($"{group.LibraryName}:");
+                Console.WriteLine($"{visitorsByLibrary.LibraryName}:");
 
-                foreach (var visitorLibrary in group.visitorsLibrary)
+                foreach (var visitorName in visitorsByLibrary.Visitors)
                 {
-                    Visitor visitor = visitors.Find(v => v.Id == visitorLibrary.VisitorId);
-                    Console.WriteLine($" {visitor.Name}");
+                    Console.WriteLine($" {visitorName}");
                 }
             }
+
             Console.WriteLine();
         }
 
         private static void ListVisitorsByDistricts(List<Library> libraries, List<District> districts, 
-                                                    List<Visitor> visitors, 
-                                                    List<VisitorLibrary> visitorsLibrary)
+                                                    List<Visitor> visitors, List<VisitorLibrary> visitorsLibrary)                                                    
         {
             var visitorsByDistricts = from district in districts
-                                      join library in libraries on
-                                      district.Id equals library.DistrictId into libGroup
+                                      join library in libraries on district.Id equals library.DistrictId
+                                      join visitorLibrary in visitorsLibrary on library.Id equals visitorLibrary.LibraryId
+                                      join visitor in visitors on visitorLibrary.VisitorId equals visitor.Id
+                                      group visitor by district into g
+                                      orderby g.Count() descending
                                       select new
                                       {
-                                          DistrictName = district.Name,
-                                          VisitorsLibrary =
-                                          from library in libGroup
-                                          join visitorLibrary in visitorsLibrary on
-                                          library.Id equals visitorLibrary.LibraryId
-                                          select visitorLibrary.VisitorId
+                                          DistrictName = g.Key.Name,
+                                          Visitors = g.Select(v => v.Name)
                                       };
                                       
-            foreach (var group in visitorsByDistricts)
+            foreach (var visitorsByDistrict in visitorsByDistricts)
             {
-                Console.WriteLine($"{group.DistrictName}:");
-                foreach (var visitorLibraryId in group.VisitorsLibrary)
+                Console.WriteLine($"{visitorsByDistrict.DistrictName}:");
+
+                foreach (var visitorName in visitorsByDistrict.Visitors)
                 {
-                    Visitor visitor = visitors.Find(v => v.Id == visitorLibraryId);
-                    Console.WriteLine($" {visitor.Name}");
+                    Console.WriteLine($" {visitorName}");
                 }
             }
+
             Console.WriteLine();
         }
 
-        private static (List<VisitorLibrary> visitorsLibrary, List<Visitor> visitors, 
-                        List<Library> libraries, List<District> districts, City city) GetData()
+        private static void ListVisitorsCountByDistricts(List<Library> libraries, List<District> districts,
+                                                         List<VisitorLibrary> visitorsLibrary)
+        {
+            var visitorsCountByDistricts = from district in districts
+                                      join library in libraries on district.Id equals library.DistrictId
+                                      join visitorLibrary in visitorsLibrary on library.Id equals visitorLibrary.LibraryId
+                                      group visitorLibrary by district into g
+                                      let count = g.Count()
+                                      orderby count descending
+                                      select new
+                                      {
+                                          DistrictName = g.Key.Name,
+                                          Count = count  
+                                      };
+
+            foreach (var visitorsCountByDistrict in visitorsCountByDistricts)
+            {
+                Console.WriteLine($"{visitorsCountByDistrict.DistrictName}: {visitorsCountByDistrict.Count}");
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ListBooksCountByGenres(List<Book> books, List<Genre> genres)
+        {
+            var booksByGenres = from genre in genres
+                                join book in books on genre.Id equals book.GenreId into g
+                                select new { Genre = genre.Name, Count = g.Count() };
+
+            foreach (var booksByGenre in booksByGenres)
+            {
+                Console.WriteLine($"{booksByGenre.Genre}: {booksByGenre.Count}");
+            }
+
+            Console.WriteLine();
+        }
+
+
+
+        private static (List<VisitorLibrary> visitorsLibrary, List<Visitor> visitors,
+                        List<Library> libraries, List<District> districts, City city,
+                        List<Book> books, List<Genre> genres) GetData()
 
         {
             var Chester = new City("Chester");
 
             var districts = new List<District>();
 
-            var BloodPlaza = new District("Blood Plaza", Chester.Id);
-            districts.Add(BloodPlaza);
-            var NorthLownerd = new District("North Lownerd", Chester.Id);
-            districts.Add(NorthLownerd);
             var WacitGrove = new District("WacitGrove", Chester.Id);
             districts.Add(WacitGrove);
             var ButalpNorth = new District("ButalpNort", Chester.Id);
             districts.Add(ButalpNorth);
             var CherriftWood = new District("CherriftWood", Chester.Id);
             districts.Add(CherriftWood);
+            var BloodPlaza = new District("Blood Plaza", Chester.Id);
+            districts.Add(BloodPlaza);
+            var NorthLownerd = new District("North Lownerd", Chester.Id);
+            districts.Add(NorthLownerd);
 
             var libraries = new List<Library>();
 
@@ -236,21 +283,196 @@ namespace LibraryNetwork
             var KellanConroy_ObeliskLibrary = new VisitorLibrary(KellanConroy.Id, ObeliskLibrary.Id);
             visitorsLibrary.Add(KellanConroy_ObeliskLibrary);
 
+            var genres = new List<Genre>();
 
-            return (visitorsLibrary, visitors, libraries, districts, Chester);
-        }
-    }
+            var crimeGenre = new Genre("Crime Genre"); // 8
+            genres.Add(crimeGenre);
+            var fantasyGenre = new Genre("Fantasy Genre"); // 7
+            genres.Add(fantasyGenre);
+            var mysteryGenre = new Genre("Mystery Genre"); // 11
+            genres.Add(mysteryGenre);
+            var romanceGenre = new Genre("Romance Genre"); // 9 
+            genres.Add(romanceGenre);
+            var sciFiGenre = new Genre("Sci-Fi Genre"); // 5
+            genres.Add(sciFiGenre);
 
-    class VisitorLibrary
-    {
-        public Guid LibraryId { get; }
+            var authors = new List<Author>();
 
-        public Guid VisitorId { get; }
+            var KitStrickland = new Author("Kit Strickland");
+            authors.Add(KitStrickland);
+            var MikeWheeler = new Author("Mike Wheeler");
+            authors.Add(MikeWheeler);
+            var FredGriffith = new Author("Fred Griffith");
+            authors.Add(FredGriffith);
+            var PaulSnyder = new Author("Paul Snyder");
+            authors.Add(PaulSnyder);
+            var KingsleyCraig = new Author("Kingsley Craig");
+            authors.Add(KingsleyCraig);
+            var MarshallShaw = new Author("Marshall Shaw");
+            authors.Add(MarshallShaw);
+            var ArnoldMalone = new Author("Arnold Malone");
+            authors.Add(ArnoldMalone);
+            var AlanMckinney = new Author("Alan Mckinney");
+            authors.Add(AlanMckinney);
+            var AikenBell = new Author("Aiken Bell");
+            authors.Add(AikenBell);
+            var BazStone = new Author("Baz Stone");
+            authors.Add(BazStone);
+            var RayWade = new Author("Ray Wade");
+            authors.Add(RayWade);
+            var SpikeWatts = new Author("Spike Watts");
+            authors.Add(SpikeWatts);
+            var JackKain = new Author("Jack Kain");
+            authors.Add(JackKain);
+            var LeroyWatkins = new Author("Leroy Watkins");
+            authors.Add(LeroyWatkins);
+            var BradStrickland = new Author("Brad Strickland");
+            authors.Add(BradStrickland);
+            var RockyReid = new Author("Rocky Reid");
+            authors.Add(RockyReid);
+            var BlakeHoyles = new Author("Blake Hoyles");
+            authors.Add(BlakeHoyles);
+            var DwayneCurrey = new Author("Dwayne Currey");
+            authors.Add(DwayneCurrey);
+            var FordBarker = new Author("Ford Barker");
+            authors.Add(FordBarker);
+            var TobyBennett = new Author("Toby Bennett");
+            authors.Add(TobyBennett);
+            var WallyBlake = new Author("Wally Blake");
+            authors.Add(WallyBlake);
+            var DamianYoung = new Author("Damian Young");
+            authors.Add(DamianYoung);
+            var LaurenceHudson = new Author("Laurence Hudson");
+            authors.Add(LaurenceHudson);
+            var MortonFoster = new Author("Morton Foster");
+            authors.Add(MortonFoster);
+            var GlenFreeman = new Author("Glen Freeman");
+            authors.Add(GlenFreeman);
+            var TommyParham = new Author("Tommy Parham");
+            authors.Add(TommyParham);
+            var WintonStone = new Author("Winton Stone");
+            authors.Add(WintonStone);
+            var ErnestHodgson = new Author("Ernest Hodgson");
+            authors.Add(ErnestHodgson);
+            var WalterAndrews = new Author("Walter Andrews");
+            authors.Add(WalterAndrews);
+            var BertLamb = new Author("Bert Lamb");
+            authors.Add(BertLamb);
+            var BarrettMoss = new Author("Barrett Moss");
+            authors.Add(BarrettMoss);
+            var MaynardArnold = new Author("Maynard Arnold");
+            authors.Add(MaynardArnold);
+            var FrankSandoval = new Author("Frank Sandoval");
+            authors.Add(FrankSandoval);
+            var CliffordRehbein = new Author("Clifford Rehbein");
+            authors.Add(CliffordRehbein);
+            var KitStevenson = new Author("Kit Stevenson");
+            authors.Add(KitStevenson);
+            var SimonWalton = new Author("Simon Walton");
+            authors.Add(SimonWalton);
+            var KeithTurner = new Author("Keith Turner");
+            authors.Add(KeithTurner);
+            var OllieSkinner = new Author("Ollie Skinner");
+            authors.Add(OllieSkinner);
+            var RyanLynch = new Author("Ryan Lynch");
+            authors.Add(RyanLynch);
+            var DentonFrazier = new Author("Denton Frazier");
+            authors.Add(DentonFrazier);
 
-        public VisitorLibrary(Guid visitorId, Guid libraryId)
-        {
-            VisitorId = visitorId;
-            LibraryId = libraryId;
+            var releaseForms = new List<ReleaseForm>();
+
+            var hardcoverReleaseForm = new ReleaseForm("Hardcover Release Form");
+            releaseForms.Add(hardcoverReleaseForm);
+            var paperbackReleaseForm = new ReleaseForm("Paperback Release Form");
+            releaseForms.Add(paperbackReleaseForm);
+            var premiumReleaseForm = new ReleaseForm("Premium Release Form");
+
+            var books = new List<Book>();
+
+            var TheVault = new Book(@"""The Vault""", KitStrickland.Id, crimeGenre.Id);
+            books.Add(TheVault);
+            var GhostRiders = new Book(@"""Ghost Riders""", MikeWheeler.Id, crimeGenre.Id);
+            books.Add(GhostRiders);
+            var Hypothermia = new Book(@"""Hypothermia""", FredGriffith.Id, crimeGenre.Id);
+            books.Add(Hypothermia);
+            var TheCase = new Book(@"""The Case""", PaulSnyder.Id, crimeGenre.Id);
+            books.Add(TheCase);
+            var Darkside = new Book(@"""Darkside""", KingsleyCraig.Id, crimeGenre.Id);
+            books.Add(Darkside);
+            var Mercy = new Book(@"""Mercy""", MarshallShaw.Id, crimeGenre.Id);
+            books.Add(Mercy);
+            var BlueLightning = new Book(@"""Blue Lightning""", ArnoldMalone.Id, crimeGenre.Id);
+            books.Add(BlueLightning);
+            var TheFrozenDead = new Book(@"""The Frozen Dead""", AlanMckinney.Id, crimeGenre.Id);
+            books.Add(TheFrozenDead);
+            var TheHobbit = new Book(@"""The Hobbit""", AikenBell.Id, fantasyGenre.Id);
+            books.Add(TheHobbit);
+            var TheSword = new Book(@"""The Sword""", BazStone.Id, fantasyGenre.Id);
+            books.Add(TheSword);
+            var TheLion = new Book(@"""The Lion""", RayWade.Id, fantasyGenre.Id);
+            books.Add(TheLion);
+            var TheStone = new Book(@"""The Stone""", SpikeWatts.Id, fantasyGenre.Id);
+            books.Add(TheStone);
+            var TheMaster = new Book(@"""The Master""", JackKain.Id, fantasyGenre.Id);
+            books.Add(TheMaster);
+            var TheLast = new Book(@"""The Last""", LeroyWatkins.Id, fantasyGenre.Id);
+            books.Add(TheLast);
+            var AWizard = new Book(@"""A Wizard""", BradStrickland.Id, fantasyGenre.Id);
+            books.Add(AWizard);
+            var TheMystery = new Book(@"""The Mystery""", RockyReid.Id, mysteryGenre.Id);
+            books.Add(TheMystery);
+            var TheZone = new Book(@"""The Zone""", BlakeHoyles.Id, mysteryGenre.Id);
+            books.Add(TheZone);
+            var Dead = new Book(@"""Dead""", DwayneCurrey.Id, mysteryGenre.Id);
+            books.Add(Dead);
+            var Creep = new Book(@"""Creep""", FordBarker.Id, mysteryGenre.Id);
+            books.Add(Creep);
+            var Dark = new Book(@"""Dark""", TobyBennett.Id, mysteryGenre.Id);
+            books.Add(Dark);
+            var Magic = new Book(@"""Magic""", WallyBlake.Id, mysteryGenre.Id);
+            books.Add(Magic);
+            var TheDevil = new Book(@"""The Devil""", DamianYoung.Id, mysteryGenre.Id);
+            books.Add(TheDevil);
+            var Mysteries = new Book(@"""Mysteries""", LaurenceHudson.Id, mysteryGenre.Id);
+            books.Add(Mysteries);
+            var TheQueer = new Book(@"""The Queer""", MortonFoster.Id, mysteryGenre.Id);
+            books.Add(TheQueer);
+            var ThePortrait = new Book(@"""The Portrait""", GlenFreeman.Id, mysteryGenre.Id);
+            books.Add(ThePortrait);
+            var TheSecret = new Book(@"""The Secret""", TommyParham.Id, mysteryGenre.Id);
+            books.Add(TheSecret);
+            var LordOfScoundrels = new Book(@"""Lord of Scoundrels""", WintonStone.Id, romanceGenre.Id);
+            books.Add(LordOfScoundrels);
+            var Indigo = new Book(@"""Indigo""", ErnestHodgson.Id, romanceGenre.Id);
+            books.Add(Indigo);
+            var Casablanca = new Book(@"""Casablanca""", WalterAndrews.Id, romanceGenre.Id);
+            books.Add(Casablanca);
+            var ANightAtTheOpera = new Book(@"""A Night at the Opera""", BertLamb.Id, romanceGenre.Id);
+            books.Add(ANightAtTheOpera);
+            var CallMe = new Book(@"""Call Me""", BarrettMoss.Id, romanceGenre.Id);
+            books.Add(CallMe);
+            var TopHat = new Book(@"""Top Hat""", MaynardArnold.Id, romanceGenre.Id);
+            books.Add(TopHat);
+            var Her = new Book(@"""Her""", FrankSandoval.Id, romanceGenre.Id);
+            books.Add(Her);
+            var TheAfricanQueen = new Book(@"""The African Queen""", CliffordRehbein.Id, romanceGenre.Id);
+            books.Add(TheAfricanQueen);
+            var TheLostWeekend = new Book(@"""The Lost Weekend""", KitStevenson.Id, romanceGenre.Id);
+            books.Add(TheLostWeekend);
+            var WhatIf = new Book(@"""What If""", SimonWalton.Id, sciFiGenre.Id);
+            books.Add(WhatIf);
+            var BlackHole = new Book(@"""Black Hole""", KeithTurner.Id, sciFiGenre.Id);
+            books.Add(BlackHole);
+            var Sciencia = new Book(@"""Sciencia""", OllieSkinner.Id, sciFiGenre.Id);
+            books.Add(Sciencia);
+            var AtomSmashing = new Book(@"""Atom Smashing""", RyanLynch.Id, sciFiGenre.Id);
+            books.Add(AtomSmashing);
+            var FoodChemistry = new Book(@"""Food Chemistry""", DentonFrazier.Id, sciFiGenre.Id);
+            books.Add(FoodChemistry);
+
+
+
+            return (visitorsLibrary, visitors, libraries, districts, Chester, books, genres);
         }
     }
 }

@@ -12,11 +12,11 @@ namespace LibraryNetwork
 
         public string Title { get; }
 
-        public Book(string title, Author author, Genre genre)
+        public Book(string title, Guid authorId, Guid genreId)
         {
             Id = Guid.NewGuid();
-            AuthorId = author.Id;
-            GenreId = genre.Id;
+            AuthorId = authorId;
+            GenreId = genreId;
             Title = title;
         }
     }

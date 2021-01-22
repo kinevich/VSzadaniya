@@ -12,12 +12,12 @@ namespace LibraryNetwork
 
         public Guid ReleaseFormId { get; }
 
-        public BookCopy(Book book, Edition edition, ReleaseForm releaseForm)
+        public BookCopy(Guid bookId, Guid editionId, Guid releaseFormId)
         {
             Id = Guid.NewGuid();
-            BookId = book.Id;
-            EditionId = edition.Id;
-            ReleaseFormId = releaseForm.Id;
+            BookId = bookId;
+            EditionId = editionId;
+            ReleaseFormId = releaseFormId;
         }
 
     }
