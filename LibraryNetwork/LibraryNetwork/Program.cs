@@ -8,19 +8,19 @@ namespace LibraryNetwork
     {
         static void Main(string[] args)
         {
-            (List<VisitorLibrary> visitorsLibrary, List<Visitor> visitors, List<Library> libraries,
-             List<District> districts, City city, List<Book> books, List<Genre> genres) = GetData();
-
-            // 16 libraries, 5 districts
+            (List<VisitorLibrary> visitorsLibraries, List<Visitor> visitors, List<Library> libraries,
+             List<District> districts, City city, List<Book> books, List<Genre> genres, List<Edition> editions,
+             List<BookCopy> booksCopies, List<BookCopyLibrary> booksCopiesLibraries) = GetData();
 
             //ListLibraryNames(libraries);
             //ListGroupedLibrariesByDistricts(libraries, districts);
             //ListDistrictsDontHaveLibraries(libraries, districts);
-            //ListAllVisitors(libraries, visitorsLibrary, visitors);
-            //ListVisitorsByLibraries(libraries, visitors, visitorsLibrary);
-            //ListVisitorsByDistricts(libraries, districts, visitors, visitorsLibrary);
-            //ListVisitorsCountByDistricts(libraries, districts, visitorsLibrary);
-            ListBooksCountByGenres(books, genres);
+            //ListAllVisitors(libraries, visitors);
+            //ListVisitorsByLibraries(libraries, visitors, visitorsLibraries);
+            //ListVisitorsByDistricts(libraries, districts, visitors, visitorsLibraries);
+            //ListVisitorsCountByDistricts(libraries, districts, visitorsLibraries);
+            //ListBooksCountByGenres(books, genres);
+            ListBooksCountByGenresByLibraries(books, genres, libraries, booksCopiesLibraries, booksCopies);
         }
 
         private static void ListLibraryNames(List<Library> libraries)
@@ -69,8 +69,7 @@ namespace LibraryNetwork
             Console.WriteLine();
         }
 
-        private static void ListAllVisitors(List<Library> libraries, List<VisitorLibrary> visitorsLibrary, 
-                                            List<Visitor> visitors)                                            
+        private static void ListAllVisitors(List<Library> libraries, List<Visitor> visitors)                                           
         {
             var query = from visitor in visitors
                         select visitor.Name;                        
@@ -84,11 +83,10 @@ namespace LibraryNetwork
         }
 
         private static void ListVisitorsByLibraries(List<Library> libraries, List<Visitor> visitors,
-                                                       List<VisitorLibrary> visitorsLibrary)
-
+                                                       List<VisitorLibrary> visitorsLibraries)
         {
             var visitorsByLibraries = from library in libraries
-                        join visitorLibrary in visitorsLibrary on library.Id equals visitorLibrary.LibraryId
+                        join visitorLibrary in visitorsLibraries on library.Id equals visitorLibrary.LibraryId
                         join visitor in visitors on visitorLibrary.VisitorId equals visitor.Id
                         group visitor by library into g
                         select new
@@ -176,12 +174,43 @@ namespace LibraryNetwork
             Console.WriteLine();
         }
 
+        private static void ListBooksCountByGenresByLibraries(List<Book> books, List<Genre> genres, List<Library> libraries,
+                                                              List<BookCopyLibrary> booksCopiesLibraries, List<BookCopy> booksCopies)
+        {
+            var booksCountByGenresByLibraries = from library in libraries
+                                                join bookCopyLibrary in booksCopiesLibraries on library.Id equals bookCopyLibrary.LibraryId
+                                                join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                                join book in books on bookCopy.BookId equals book.Id
+                                                group book by library into g
+                                                select new
+                                                {
+                                                    LibraryName = g.Key.Name,
+                                                    Counts = from book in g
+                                                             join genre in genres on book.GenreId equals genre.Id
+                                                             group book by genre into g1
+                                                             select new
+                                                             {
+                                                                 GenreName = g1.Key.Name,
+                                                                 Count = (from book in g1
+                                                                          group book by book.Id).Count()
+                                                             }
+                                                };
 
+            foreach (var booksCountByGenresByLibrary in booksCountByGenresByLibraries)
+            {
+                Console.WriteLine(booksCountByGenresByLibrary.LibraryName);
 
-        private static (List<VisitorLibrary> visitorsLibrary, List<Visitor> visitors,
+                foreach (var booksCountByGenre in booksCountByGenresByLibrary.Counts)
+                    Console.WriteLine($" {booksCountByGenre.GenreName} - {booksCountByGenre.Count}");
+            }
+
+            Console.WriteLine();
+        }
+
+        private static (List<VisitorLibrary> visitorsLibraries, List<Visitor> visitors,
                         List<Library> libraries, List<District> districts, City city,
-                        List<Book> books, List<Genre> genres) GetData()
-
+                        List<Book> books, List<Genre> genres, List<Edition> editions,
+                        List<BookCopy> booksCopies, List<BookCopyLibrary> booksCopiesLibraries) GetData()
         {
             var Chester = new City("Chester");
 
@@ -200,110 +229,104 @@ namespace LibraryNetwork
 
             var libraries = new List<Library>();
 
-            Library TempleLibrary = new Library("Temple Library", BloodPlaza.Id); // 3-1-1-1+
+            var TempleLibrary = new Library("Temple Library", BloodPlaza.Id); 
             libraries.Add(TempleLibrary);
-            Library ObeliskLibrary = new Library("Obelisk Library", BloodPlaza.Id); // 5-1-1-1-1-1+
+            var ObeliskLibrary = new Library("Obelisk Library", BloodPlaza.Id); 
             libraries.Add(ObeliskLibrary);
-            Library AlgorithmLibrary = new Library("Algorithm Library", BloodPlaza.Id); //2-1-1+
+            var AlgorithmLibrary = new Library("Algorithm Library", BloodPlaza.Id); 
             libraries.Add(AlgorithmLibrary);
-            Library DaydreamLibrary = new Library("Daydream Library", NorthLownerd.Id); //3-1-1-1+
+            var DaydreamLibrary = new Library("Daydream Library", NorthLownerd.Id);
             libraries.Add(DaydreamLibrary);
-            Library AmenityLibrary = new Library("Amenity Library", NorthLownerd.Id); //1-1+
+            var AmenityLibrary = new Library("Amenity Library", NorthLownerd.Id); 
             libraries.Add(AmenityLibrary);
-            Library BeverlyLibrary = new Library("Beverly Library", ButalpNorth.Id); // 2-1-1+
+            var BeverlyLibrary = new Library("Beverly Library", ButalpNorth.Id); 
             libraries.Add(BeverlyLibrary);
-            Library AeosLibrary = new Library("Aeos Library", CherriftWood.Id); // 2-1-1+
-            libraries.Add(AeosLibrary);
+            var AeosLibrary = new Library("Aeos Library", CherriftWood.Id); 
+            libraries.Add(AeosLibrary);            
 
             var visitors = new List<Visitor>();
 
-            Visitor SanjeevAdams = new Visitor("Sanjeev Adams"); // 2 +
+            var SanjeevAdams = new Visitor("Sanjeev Adams"); 
             visitors.Add(SanjeevAdams);
-            Visitor ClaireMackie = new Visitor("Claire Mackie"); //  +
+            var ClaireMackie = new Visitor("Claire Mackie"); 
             visitors.Add(ClaireMackie);
-            Visitor HaleyBarnard = new Visitor("Haley Barnard");// +
+            var HaleyBarnard = new Visitor("Haley Barnard");
             visitors.Add(HaleyBarnard);
-            Visitor LeightonAndersen = new Visitor("Leighton Andersen"); // +
+            var LeightonAndersen = new Visitor("Leighton Andersen"); 
             visitors.Add(LeightonAndersen);
-            Visitor MattFitzgerald = new Visitor("Matt Fitzgerald"); // 3 +
+            var MattFitzgerald = new Visitor("Matt Fitzgerald"); 
             visitors.Add(MattFitzgerald);
-            Visitor GinoPearce = new Visitor("Gino Pearce"); //+
+            var GinoPearce = new Visitor("Gino Pearce"); 
             visitors.Add(GinoPearce);
-            Visitor RehaanYork = new Visitor("Rehaan York");//+
+            var RehaanYork = new Visitor("Rehaan York");
             visitors.Add(RehaanYork);
-            Visitor VerityMorton = new Visitor("Verity Morton"); // +
+            var VerityMorton = new Visitor("Verity Morton"); 
             visitors.Add(VerityMorton);
-            Visitor KadeTravis = new Visitor("Kade Travis"); // +
+            var KadeTravis = new Visitor("Kade Travis"); 
             visitors.Add(KadeTravis);
-            Visitor KhalidHarding = new Visitor("Khalid Harding"); // 2 +
+            var KhalidHarding = new Visitor("Khalid Harding"); 
             visitors.Add(KhalidHarding);
-            Visitor HasnainKearney = new Visitor("Hasnain Kearney");
+            var HasnainKearney = new Visitor("Hasnain Kearney");
             visitors.Add(HasnainKearney);
-            Visitor BeaudenNielsen = new Visitor("Beauden Nielsen");
+            var BeaudenNielsen = new Visitor("Beauden Nielsen");
             visitors.Add(BeaudenNielsen);
-            Visitor KellanConroy = new Visitor("Kellan Conroy"); // 2
+            var KellanConroy = new Visitor("Kellan Conroy"); 
             visitors.Add(KellanConroy);
 
-            var visitorsLibrary = new List<VisitorLibrary>();
+            var visitorsLibraries = new List<VisitorLibrary>();
 
             var SanjeevAdams_TempleLibrary = new VisitorLibrary(SanjeevAdams.Id, TempleLibrary.Id);
-            visitorsLibrary.Add(SanjeevAdams_TempleLibrary);
+            visitorsLibraries.Add(SanjeevAdams_TempleLibrary);
             var SanjeevAdams_DaydreamLibrary = new VisitorLibrary(SanjeevAdams.Id, DaydreamLibrary.Id);
-            visitorsLibrary.Add(SanjeevAdams_DaydreamLibrary);
+            visitorsLibraries.Add(SanjeevAdams_DaydreamLibrary);
             var ClaireMackie_ObeliskLibrary = new VisitorLibrary(ClaireMackie.Id, ObeliskLibrary.Id);
-            visitorsLibrary.Add(ClaireMackie_ObeliskLibrary);
+            visitorsLibraries.Add(ClaireMackie_ObeliskLibrary);
             var HaleyBarnard_AlgorithmLibrary = new VisitorLibrary(HaleyBarnard.Id, AlgorithmLibrary.Id);
-            visitorsLibrary.Add(HaleyBarnard_AlgorithmLibrary);
+            visitorsLibraries.Add(HaleyBarnard_AlgorithmLibrary);
             var LeightonAndersen_TempleLibrary = new VisitorLibrary(LeightonAndersen.Id, TempleLibrary.Id);
-            visitorsLibrary.Add(LeightonAndersen_TempleLibrary);
+            visitorsLibraries.Add(LeightonAndersen_TempleLibrary);
             var MattFitzgerald_TempleLibrary = new VisitorLibrary(MattFitzgerald.Id, TempleLibrary.Id);
-            visitorsLibrary.Add(MattFitzgerald_TempleLibrary);
+            visitorsLibraries.Add(MattFitzgerald_TempleLibrary);
             var MattFitzgerald_BeverlyLibrary = new VisitorLibrary(MattFitzgerald.Id, BeverlyLibrary.Id);
-            visitorsLibrary.Add(MattFitzgerald_BeverlyLibrary);
+            visitorsLibraries.Add(MattFitzgerald_BeverlyLibrary);
             var MattFitzgerald_AmenityLibrary = new VisitorLibrary(MattFitzgerald.Id, AmenityLibrary.Id);
-            visitorsLibrary.Add(MattFitzgerald_AmenityLibrary);
+            visitorsLibraries.Add(MattFitzgerald_AmenityLibrary);
             var GinoPearce_ObeliskLibrary = new VisitorLibrary(GinoPearce.Id, ObeliskLibrary.Id);
-            visitorsLibrary.Add(GinoPearce_ObeliskLibrary);
+            visitorsLibraries.Add(GinoPearce_ObeliskLibrary);
             var RehaanYork_AlgorithmLibrary = new VisitorLibrary(RehaanYork.Id, AlgorithmLibrary.Id);
-            visitorsLibrary.Add(RehaanYork_AlgorithmLibrary);
+            visitorsLibraries.Add(RehaanYork_AlgorithmLibrary);
             var VerityMorton_DaydreamLibrary = new VisitorLibrary(VerityMorton.Id, DaydreamLibrary.Id);
-            visitorsLibrary.Add(VerityMorton_DaydreamLibrary);
+            visitorsLibraries.Add(VerityMorton_DaydreamLibrary);
             var KadeTravis_DaydreamLibrary = new VisitorLibrary(KadeTravis.Id, DaydreamLibrary.Id);
-            visitorsLibrary.Add(KadeTravis_DaydreamLibrary);
+            visitorsLibraries.Add(KadeTravis_DaydreamLibrary);
             var KhalidHarding_BeverlyLibrary = new VisitorLibrary(KhalidHarding.Id, BeverlyLibrary.Id);
-            visitorsLibrary.Add(KhalidHarding_BeverlyLibrary);
+            visitorsLibraries.Add(KhalidHarding_BeverlyLibrary);
             var KhalidHarding_ObeliskLibrary = new VisitorLibrary(KhalidHarding.Id, ObeliskLibrary.Id);
-            visitorsLibrary.Add(KhalidHarding_ObeliskLibrary);
+            visitorsLibraries.Add(KhalidHarding_ObeliskLibrary);
             var HasnainKearney_AeosLibrary = new VisitorLibrary(HasnainKearney.Id, AeosLibrary.Id);
-            visitorsLibrary.Add(HasnainKearney_AeosLibrary);
+            visitorsLibraries.Add(HasnainKearney_AeosLibrary);
             var BeaudenNielsen_ObeliskLibrary = new VisitorLibrary(BeaudenNielsen.Id, ObeliskLibrary.Id);
-            visitorsLibrary.Add(BeaudenNielsen_ObeliskLibrary);
+            visitorsLibraries.Add(BeaudenNielsen_ObeliskLibrary);
             var KellanConroy_AeosLibrary = new VisitorLibrary(KellanConroy.Id, AeosLibrary.Id);
-            visitorsLibrary.Add(KellanConroy_AeosLibrary);
+            visitorsLibraries.Add(KellanConroy_AeosLibrary);
             var KellanConroy_ObeliskLibrary = new VisitorLibrary(KellanConroy.Id, ObeliskLibrary.Id);
-            visitorsLibrary.Add(KellanConroy_ObeliskLibrary);
+            visitorsLibraries.Add(KellanConroy_ObeliskLibrary);
 
             var genres = new List<Genre>();
 
-            var crimeGenre = new Genre("Crime Genre"); // 8
+            var crimeGenre = new Genre("Crime Genre"); 
             genres.Add(crimeGenre);
-            var fantasyGenre = new Genre("Fantasy Genre"); // 7
+            var fantasyGenre = new Genre("Fantasy Genre"); 
             genres.Add(fantasyGenre);
-            var mysteryGenre = new Genre("Mystery Genre"); // 11
+            var mysteryGenre = new Genre("Mystery Genre"); 
             genres.Add(mysteryGenre);
-            var romanceGenre = new Genre("Romance Genre"); // 9 
+            var romanceGenre = new Genre("Romance Genre"); 
             genres.Add(romanceGenre);
-            var sciFiGenre = new Genre("Sci-Fi Genre"); // 5
+            var sciFiGenre = new Genre("Sci-Fi Genre"); 
             genres.Add(sciFiGenre);
 
             var authors = new List<Author>();
 
-            var KitStrickland = new Author("Kit Strickland");
-            authors.Add(KitStrickland);
-            var MikeWheeler = new Author("Mike Wheeler");
-            authors.Add(MikeWheeler);
-            var FredGriffith = new Author("Fred Griffith");
-            authors.Add(FredGriffith);
             var PaulSnyder = new Author("Paul Snyder");
             authors.Add(PaulSnyder);
             var KingsleyCraig = new Author("Kingsley Craig");
@@ -320,60 +343,16 @@ namespace LibraryNetwork
             authors.Add(BazStone);
             var RayWade = new Author("Ray Wade");
             authors.Add(RayWade);
-            var SpikeWatts = new Author("Spike Watts");
-            authors.Add(SpikeWatts);
-            var JackKain = new Author("Jack Kain");
-            authors.Add(JackKain);
-            var LeroyWatkins = new Author("Leroy Watkins");
-            authors.Add(LeroyWatkins);
-            var BradStrickland = new Author("Brad Strickland");
-            authors.Add(BradStrickland);
             var RockyReid = new Author("Rocky Reid");
             authors.Add(RockyReid);
             var BlakeHoyles = new Author("Blake Hoyles");
             authors.Add(BlakeHoyles);
-            var DwayneCurrey = new Author("Dwayne Currey");
-            authors.Add(DwayneCurrey);
-            var FordBarker = new Author("Ford Barker");
-            authors.Add(FordBarker);
-            var TobyBennett = new Author("Toby Bennett");
-            authors.Add(TobyBennett);
-            var WallyBlake = new Author("Wally Blake");
-            authors.Add(WallyBlake);
-            var DamianYoung = new Author("Damian Young");
-            authors.Add(DamianYoung);
-            var LaurenceHudson = new Author("Laurence Hudson");
-            authors.Add(LaurenceHudson);
-            var MortonFoster = new Author("Morton Foster");
-            authors.Add(MortonFoster);
-            var GlenFreeman = new Author("Glen Freeman");
-            authors.Add(GlenFreeman);
-            var TommyParham = new Author("Tommy Parham");
-            authors.Add(TommyParham);
             var WintonStone = new Author("Winton Stone");
             authors.Add(WintonStone);
             var ErnestHodgson = new Author("Ernest Hodgson");
             authors.Add(ErnestHodgson);
-            var WalterAndrews = new Author("Walter Andrews");
-            authors.Add(WalterAndrews);
-            var BertLamb = new Author("Bert Lamb");
-            authors.Add(BertLamb);
-            var BarrettMoss = new Author("Barrett Moss");
-            authors.Add(BarrettMoss);
-            var MaynardArnold = new Author("Maynard Arnold");
-            authors.Add(MaynardArnold);
-            var FrankSandoval = new Author("Frank Sandoval");
-            authors.Add(FrankSandoval);
-            var CliffordRehbein = new Author("Clifford Rehbein");
-            authors.Add(CliffordRehbein);
             var KitStevenson = new Author("Kit Stevenson");
             authors.Add(KitStevenson);
-            var SimonWalton = new Author("Simon Walton");
-            authors.Add(SimonWalton);
-            var KeithTurner = new Author("Keith Turner");
-            authors.Add(KeithTurner);
-            var OllieSkinner = new Author("Ollie Skinner");
-            authors.Add(OllieSkinner);
             var RyanLynch = new Author("Ryan Lynch");
             authors.Add(RyanLynch);
             var DentonFrazier = new Author("Denton Frazier");
@@ -389,90 +368,219 @@ namespace LibraryNetwork
 
             var books = new List<Book>();
 
-            var TheVault = new Book(@"""The Vault""", KitStrickland.Id, crimeGenre.Id);
-            books.Add(TheVault);
-            var GhostRiders = new Book(@"""Ghost Riders""", MikeWheeler.Id, crimeGenre.Id);
-            books.Add(GhostRiders);
-            var Hypothermia = new Book(@"""Hypothermia""", FredGriffith.Id, crimeGenre.Id);
-            books.Add(Hypothermia);
-            var TheCase = new Book(@"""The Case""", PaulSnyder.Id, crimeGenre.Id);
+            var TheCase = new Book(@"""The Case""", PaulSnyder.Id, crimeGenre.Id);  
             books.Add(TheCase);
-            var Darkside = new Book(@"""Darkside""", KingsleyCraig.Id, crimeGenre.Id);
+            var Darkside = new Book(@"""Darkside""", KingsleyCraig.Id, crimeGenre.Id); 
             books.Add(Darkside);
-            var Mercy = new Book(@"""Mercy""", MarshallShaw.Id, crimeGenre.Id);
+            var Mercy = new Book(@"""Mercy""", MarshallShaw.Id, crimeGenre.Id); 
             books.Add(Mercy);
-            var BlueLightning = new Book(@"""Blue Lightning""", ArnoldMalone.Id, crimeGenre.Id);
+            var BlueLightning = new Book(@"""Blue Lightning""", ArnoldMalone.Id, crimeGenre.Id); 
             books.Add(BlueLightning);
-            var TheFrozenDead = new Book(@"""The Frozen Dead""", AlanMckinney.Id, crimeGenre.Id);
+            var TheFrozenDead = new Book(@"""The Frozen Dead""", AlanMckinney.Id, crimeGenre.Id); 
             books.Add(TheFrozenDead);
-            var TheHobbit = new Book(@"""The Hobbit""", AikenBell.Id, fantasyGenre.Id);
-            books.Add(TheHobbit);
-            var TheSword = new Book(@"""The Sword""", BazStone.Id, fantasyGenre.Id);
+            var TheHobbit = new Book(@"""The Hobbit""", AikenBell.Id, fantasyGenre.Id); 
+            books.Add(TheHobbit); 
+            var TheSword = new Book(@"""The Sword""", BazStone.Id, fantasyGenre.Id); 
             books.Add(TheSword);
-            var TheLion = new Book(@"""The Lion""", RayWade.Id, fantasyGenre.Id);
+            var TheLion = new Book(@"""The Lion""", RayWade.Id, fantasyGenre.Id); 
             books.Add(TheLion);
-            var TheStone = new Book(@"""The Stone""", SpikeWatts.Id, fantasyGenre.Id);
-            books.Add(TheStone);
-            var TheMaster = new Book(@"""The Master""", JackKain.Id, fantasyGenre.Id);
-            books.Add(TheMaster);
-            var TheLast = new Book(@"""The Last""", LeroyWatkins.Id, fantasyGenre.Id);
-            books.Add(TheLast);
-            var AWizard = new Book(@"""A Wizard""", BradStrickland.Id, fantasyGenre.Id);
-            books.Add(AWizard);
-            var TheMystery = new Book(@"""The Mystery""", RockyReid.Id, mysteryGenre.Id);
+            var TheMystery = new Book(@"""The Mystery""", RockyReid.Id, mysteryGenre.Id); 
             books.Add(TheMystery);
-            var TheZone = new Book(@"""The Zone""", BlakeHoyles.Id, mysteryGenre.Id);
+            var TheZone = new Book(@"""The Zone""", BlakeHoyles.Id, mysteryGenre.Id); 
             books.Add(TheZone);
-            var Dead = new Book(@"""Dead""", DwayneCurrey.Id, mysteryGenre.Id);
-            books.Add(Dead);
-            var Creep = new Book(@"""Creep""", FordBarker.Id, mysteryGenre.Id);
-            books.Add(Creep);
-            var Dark = new Book(@"""Dark""", TobyBennett.Id, mysteryGenre.Id);
-            books.Add(Dark);
-            var Magic = new Book(@"""Magic""", WallyBlake.Id, mysteryGenre.Id);
-            books.Add(Magic);
-            var TheDevil = new Book(@"""The Devil""", DamianYoung.Id, mysteryGenre.Id);
-            books.Add(TheDevil);
-            var Mysteries = new Book(@"""Mysteries""", LaurenceHudson.Id, mysteryGenre.Id);
-            books.Add(Mysteries);
-            var TheQueer = new Book(@"""The Queer""", MortonFoster.Id, mysteryGenre.Id);
-            books.Add(TheQueer);
-            var ThePortrait = new Book(@"""The Portrait""", GlenFreeman.Id, mysteryGenre.Id);
-            books.Add(ThePortrait);
-            var TheSecret = new Book(@"""The Secret""", TommyParham.Id, mysteryGenre.Id);
-            books.Add(TheSecret);
-            var LordOfScoundrels = new Book(@"""Lord of Scoundrels""", WintonStone.Id, romanceGenre.Id);
+            var LordOfScoundrels = new Book(@"""Lord of Scoundrels""", WintonStone.Id, romanceGenre.Id); 
             books.Add(LordOfScoundrels);
-            var Indigo = new Book(@"""Indigo""", ErnestHodgson.Id, romanceGenre.Id);
+            var Indigo = new Book(@"""Indigo""", ErnestHodgson.Id, romanceGenre.Id); 
             books.Add(Indigo);
-            var Casablanca = new Book(@"""Casablanca""", WalterAndrews.Id, romanceGenre.Id);
-            books.Add(Casablanca);
-            var ANightAtTheOpera = new Book(@"""A Night at the Opera""", BertLamb.Id, romanceGenre.Id);
-            books.Add(ANightAtTheOpera);
-            var CallMe = new Book(@"""Call Me""", BarrettMoss.Id, romanceGenre.Id);
-            books.Add(CallMe);
-            var TopHat = new Book(@"""Top Hat""", MaynardArnold.Id, romanceGenre.Id);
-            books.Add(TopHat);
-            var Her = new Book(@"""Her""", FrankSandoval.Id, romanceGenre.Id);
-            books.Add(Her);
-            var TheAfricanQueen = new Book(@"""The African Queen""", CliffordRehbein.Id, romanceGenre.Id);
-            books.Add(TheAfricanQueen);
-            var TheLostWeekend = new Book(@"""The Lost Weekend""", KitStevenson.Id, romanceGenre.Id);
+            var TheLostWeekend = new Book(@"""The Lost Weekend""", KitStevenson.Id, romanceGenre.Id); 
             books.Add(TheLostWeekend);
-            var WhatIf = new Book(@"""What If""", SimonWalton.Id, sciFiGenre.Id);
-            books.Add(WhatIf);
-            var BlackHole = new Book(@"""Black Hole""", KeithTurner.Id, sciFiGenre.Id);
-            books.Add(BlackHole);
-            var Sciencia = new Book(@"""Sciencia""", OllieSkinner.Id, sciFiGenre.Id);
-            books.Add(Sciencia);
-            var AtomSmashing = new Book(@"""Atom Smashing""", RyanLynch.Id, sciFiGenre.Id);
+            var AtomSmashing = new Book(@"""Atom Smashing""", RyanLynch.Id, sciFiGenre.Id); 
             books.Add(AtomSmashing);
-            var FoodChemistry = new Book(@"""Food Chemistry""", DentonFrazier.Id, sciFiGenre.Id);
+            var FoodChemistry = new Book(@"""Food Chemistry""", DentonFrazier.Id, sciFiGenre.Id); 
             books.Add(FoodChemistry);
+            //34
+
+            var editions = new List<Edition>();
+
+            var TheCase_First = new Edition("1st Edition", 342);
+            editions.Add(TheCase_First);
+            var Darkside_First = new Edition("1st Edition", 45);
+            editions.Add(Darkside_First);
+            var Mercy_First = new Edition("1st Edition", 134);
+            editions.Add(Mercy_First);
+            var BlueLightning_First = new Edition("1st Edition", 642);
+            editions.Add(BlueLightning_First);
+            var TheFrozenDead_First = new Edition("1st Edition", 935);
+            editions.Add(TheFrozenDead_First);
+            var TheHobbit_First = new Edition("1st Edition", 163);
+            editions.Add(TheHobbit_First);
+            var TheSword_First = new Edition("1st Edition", 735);
+            editions.Add(TheSword_First);
+            var TheLion_First = new Edition("1st Edition", 157);
+            editions.Add(TheLion_First);
+            var TheMystery_First = new Edition("1st Edition", 246);
+            editions.Add(TheMystery_First);
+            var TheZone_First = new Edition("1st Edition", 512);
+            editions.Add(TheZone_First);
+            var LordOfScoundrels_First = new Edition("1st Edition", 423);
+            editions.Add(LordOfScoundrels_First);
+            var Indigo_First = new Edition("1st Edition", 431);
+            editions.Add(Indigo_First);
+            var TheLostWeekend_First = new Edition("1st Edition", 223);
+            editions.Add(TheLostWeekend_First);
+            var AtomSmashing_First = new Edition("1st Edition", 192);
+            editions.Add(AtomSmashing_First);
+            var AtomSmashing_Second = new Edition("2nd Edition", 200);
+            editions.Add(AtomSmashing_Second);
+            var FoodChemistry_First = new Edition("1st Edition", 312);
+            editions.Add(FoodChemistry_First);
+            var FoodChemistry_Second = new Edition("2nd Edition", 317);
+            editions.Add(FoodChemistry_Second);
+            var FoodChemistry_Third = new Edition("3rd Edition", 330);
+            editions.Add(FoodChemistry_Third);
+
+            var bookCopies = new List<BookCopy>();
+
+            var TheCase_First1 = new BookCopy(TheCase.Id, TheCase_First.Id, hardcoverReleaseForm.Id); 
+            bookCopies.Add(TheCase_First1);
+            var TheCase_First2 = new BookCopy(TheCase.Id, TheCase_First.Id, hardcoverReleaseForm.Id); 
+            bookCopies.Add(TheCase_First2);
+            var Darkside_First1 = new BookCopy(Darkside.Id, Darkside_First.Id, hardcoverReleaseForm.Id); 
+            bookCopies.Add(Darkside_First1);
+            var Darkside_First2 = new BookCopy(Darkside.Id, Darkside_First.Id, hardcoverReleaseForm.Id); 
+            bookCopies.Add(Darkside_First2);
+            var Mercy_First1 = new BookCopy(Mercy.Id, Mercy_First.Id, hardcoverReleaseForm.Id); 
+            bookCopies.Add(Mercy_First1);
+            var Mercy_First2 = new BookCopy(Mercy.Id, Mercy_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(Mercy_First2);
+            var Mercy_First3 = new BookCopy(Mercy.Id, Mercy_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(Mercy_First3);
+            var BlueLightning_First1 = new BookCopy(BlueLightning.Id, BlueLightning_First.Id, paperbackReleaseForm.Id);
+            bookCopies.Add(BlueLightning_First1);
+            var BlueLightning_First2 = new BookCopy(BlueLightning.Id, BlueLightning_First.Id, paperbackReleaseForm.Id);
+            bookCopies.Add(BlueLightning_First2);
+            var TheFrozenDead_First1 = new BookCopy(TheFrozenDead.Id, TheFrozenDead_First.Id, paperbackReleaseForm.Id);
+            bookCopies.Add(TheFrozenDead_First1);
+            var TheHobbit_First1 = new BookCopy(TheHobbit.Id, TheHobbit_First.Id, premiumReleaseForm.Id);
+            bookCopies.Add(TheHobbit_First1);
+            var TheHobbit_First2 = new BookCopy(TheHobbit.Id, TheHobbit_First.Id, premiumReleaseForm.Id);
+            bookCopies.Add(TheHobbit_First2);
+            var TheSword_First1 = new BookCopy(TheSword.Id, TheSword_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(TheSword_First1);
+            var TheLion_First1 = new BookCopy(TheLion.Id, TheLion_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(TheLion_First1);
+            var TheMystery_First1 = new BookCopy(TheMystery.Id, TheMystery_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(TheMystery_First1);
+            var TheMystery_First2 = new BookCopy(TheMystery.Id, TheMystery_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(TheMystery_First2);
+            var TheZone_First1 = new BookCopy(TheZone.Id, TheZone_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(TheZone_First1);
+            var TheZone_First2 = new BookCopy(TheZone.Id, TheZone_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(TheZone_First2);
+            var LordOfScoundrels_First1 = new BookCopy(LordOfScoundrels.Id, LordOfScoundrels_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(LordOfScoundrels_First1);
+            var Indigo_First1 = new BookCopy(Indigo.Id, Indigo_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(Indigo_First1);
+            var Indigo_First2 = new BookCopy(Indigo.Id, Indigo_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(Indigo_First2);
+            var TheLostWeekend_First1 = new BookCopy(TheLostWeekend.Id, TheLostWeekend_First.Id, premiumReleaseForm.Id);
+            bookCopies.Add(TheLostWeekend_First1);
+            var TheLostWeekend_First2 = new BookCopy(TheLostWeekend.Id, TheLostWeekend_First.Id, premiumReleaseForm.Id);
+            bookCopies.Add(TheLostWeekend_First2);
+            var TheLostWeekend_First3 = new BookCopy(TheLostWeekend.Id, TheLostWeekend_First.Id, premiumReleaseForm.Id);
+            bookCopies.Add(TheLostWeekend_First3);
+            var AtomSmashing_First1 = new BookCopy(AtomSmashing.Id, AtomSmashing_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(AtomSmashing_First1);
+            var AtomSmashing_First2 = new BookCopy(AtomSmashing.Id, AtomSmashing_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(AtomSmashing_First2);
+            var AtomSmashing_Second1 = new BookCopy(AtomSmashing.Id, AtomSmashing_Second.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(AtomSmashing_Second1);
+            var AtomSmashing_Second2 = new BookCopy(AtomSmashing.Id, AtomSmashing_Second.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(AtomSmashing_Second2);
+            var FoodChemistry_First1 = new BookCopy(FoodChemistry.Id, FoodChemistry_First.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(FoodChemistry_First1);
+            var FoodChemistry_Second1 = new BookCopy(FoodChemistry.Id, FoodChemistry_Second.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(FoodChemistry_Second1);
+            var FoodChemistry_Second2 = new BookCopy(FoodChemistry.Id, FoodChemistry_Second.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(FoodChemistry_Second2);
+            var FoodChemistry_Third1 = new BookCopy(FoodChemistry.Id, FoodChemistry_Third.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(FoodChemistry_Third1);
+            var FoodChemistry_Third2 = new BookCopy(FoodChemistry.Id, FoodChemistry_Third.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(FoodChemistry_Third2);
+            var FoodChemistry_Third3 = new BookCopy(FoodChemistry.Id, FoodChemistry_Third.Id, hardcoverReleaseForm.Id);
+            bookCopies.Add(FoodChemistry_Third3);
+
+            var booksCopiesLibraries = new List<BookCopyLibrary>();
+
+            var TempleLibrary_TheCase_First1 = new BookCopyLibrary(TheCase_First1.Id, TempleLibrary.Id);
+            booksCopiesLibraries.Add(TempleLibrary_TheCase_First1);
+            var TempleLibrary_TheLion_First1 = new BookCopyLibrary(TheLion_First1.Id, TempleLibrary.Id);
+            booksCopiesLibraries.Add(TempleLibrary_TheLion_First1);
+            var TempleLibrary_Indigo_First1 = new BookCopyLibrary(Indigo_First1.Id, TempleLibrary.Id);
+            booksCopiesLibraries.Add(TempleLibrary_Indigo_First1);
+            var TempleLibrary_AtomSmashing_First1 = new BookCopyLibrary(AtomSmashing_First1.Id, TempleLibrary.Id);
+            booksCopiesLibraries.Add(TempleLibrary_AtomSmashing_First1);
+            var ObeliskLibrary_TheCase_First2 = new BookCopyLibrary(TheCase_First2.Id, ObeliskLibrary.Id);
+            booksCopiesLibraries.Add(ObeliskLibrary_TheCase_First2);
+            var ObeliskLibrary_TheLostWeekend_First1 = new BookCopyLibrary(TheLostWeekend_First1.Id, ObeliskLibrary.Id);
+            booksCopiesLibraries.Add(ObeliskLibrary_TheLostWeekend_First1);
+            var ObeliskLibrary_TheLostWeekend_First2 = new BookCopyLibrary(TheLostWeekend_First2.Id, ObeliskLibrary.Id);
+            booksCopiesLibraries.Add(ObeliskLibrary_TheLostWeekend_First2);
+            var ObeliskLibrary_AtomSmashing_First2 = new BookCopyLibrary(AtomSmashing_First2.Id, ObeliskLibrary.Id);
+            booksCopiesLibraries.Add(ObeliskLibrary_AtomSmashing_First2);
+            var ObeliskLibrary_TheZone_First1 = new BookCopyLibrary(TheZone_First1.Id, ObeliskLibrary.Id);
+            booksCopiesLibraries.Add(ObeliskLibrary_TheZone_First1);
+            var AlgorithmLibrary_Darkside_First1 = new BookCopyLibrary(Darkside_First1.Id, AlgorithmLibrary.Id);
+            booksCopiesLibraries.Add(AlgorithmLibrary_Darkside_First1);
+            var AlgorithmLibrary_FoodChemistry_First1 = new BookCopyLibrary(FoodChemistry_First1.Id, AlgorithmLibrary.Id);
+            booksCopiesLibraries.Add(AlgorithmLibrary_FoodChemistry_First1);
+            var AlgorithmLibrary_FoodChemistry_Second1 = new BookCopyLibrary(FoodChemistry_Second1.Id, AlgorithmLibrary.Id);
+            booksCopiesLibraries.Add(AlgorithmLibrary_FoodChemistry_Second1);
+            var AlgorithmLibrary_FoodChemistry_Second2 = new BookCopyLibrary(FoodChemistry_Second2.Id, AlgorithmLibrary.Id);
+            booksCopiesLibraries.Add(AlgorithmLibrary_FoodChemistry_Second2);
+            var AlgorithmLibrary_Indigo_First2 = new BookCopyLibrary(Indigo_First2.Id, AlgorithmLibrary.Id);
+            booksCopiesLibraries.Add(AlgorithmLibrary_Indigo_First2);
+            var DaydreamLibrary_TheHobbit_First1 = new BookCopyLibrary(TheHobbit_First1.Id, DaydreamLibrary.Id);
+            booksCopiesLibraries.Add(DaydreamLibrary_TheHobbit_First1);
+            var DaydreamLibrary_Mercy_First1 = new BookCopyLibrary(Mercy_First1.Id, DaydreamLibrary.Id);
+            booksCopiesLibraries.Add(DaydreamLibrary_Mercy_First1);
+            var DaydreamLibrary_BlueLightning_First1 = new BookCopyLibrary(BlueLightning_First1.Id, DaydreamLibrary.Id);
+            booksCopiesLibraries.Add(DaydreamLibrary_BlueLightning_First1);
+            var DaydreamLibrary_FoodChemistry_Third1 = new BookCopyLibrary(FoodChemistry_Third1.Id, DaydreamLibrary.Id);
+            booksCopiesLibraries.Add(DaydreamLibrary_FoodChemistry_Third1);
+            var DaydreamLibrary_FoodChemistry_Third2 = new BookCopyLibrary(FoodChemistry_Third2.Id, DaydreamLibrary.Id);
+            booksCopiesLibraries.Add(DaydreamLibrary_FoodChemistry_Third2);
+            var DaydreamLibrary_FoodChemistry_Third3 = new BookCopyLibrary(FoodChemistry_Third3.Id, DaydreamLibrary.Id);
+            booksCopiesLibraries.Add(DaydreamLibrary_FoodChemistry_Third3);
+            var AmenityLibrary_AtomSmashing_Second1 = new BookCopyLibrary(AtomSmashing_Second1.Id, AmenityLibrary.Id);
+            booksCopiesLibraries.Add(AmenityLibrary_AtomSmashing_Second1);
+            var AmenityLibrary_AtomSmashing_Second2 = new BookCopyLibrary(AtomSmashing_Second2.Id, AmenityLibrary.Id);
+            booksCopiesLibraries.Add(AmenityLibrary_AtomSmashing_Second2);
+            var AmenityLibrary_Mercy_First2 = new BookCopyLibrary(Mercy_First2.Id, AmenityLibrary.Id);
+            booksCopiesLibraries.Add(AmenityLibrary_Mercy_First2);
+            var AmenityLibrary_BlueLightning_First2 = new BookCopyLibrary(BlueLightning_First2.Id, AmenityLibrary.Id);
+            booksCopiesLibraries.Add(AmenityLibrary_BlueLightning_First2);
+            var BeverlyLibrary_TheMystery_First1 = new BookCopyLibrary(TheMystery_First1.Id, BeverlyLibrary.Id);
+            booksCopiesLibraries.Add(BeverlyLibrary_TheMystery_First1);
+            var BeverlyLibrary_TheMystery_First2 = new BookCopyLibrary(TheMystery_First2.Id, BeverlyLibrary.Id);
+            booksCopiesLibraries.Add(BeverlyLibrary_TheMystery_First2);
+            var BeverlyLibrary_TheFrozenDead_First1 = new BookCopyLibrary(TheFrozenDead_First1.Id, BeverlyLibrary.Id);
+            booksCopiesLibraries.Add(BeverlyLibrary_TheFrozenDead_First1);
+            var BeverlyLibrary_Mercy_First3 = new BookCopyLibrary(Mercy_First3.Id, BeverlyLibrary.Id);
+            booksCopiesLibraries.Add(BeverlyLibrary_Mercy_First3);
+            var BeverlyLibrary_TheHobbit_First2 = new BookCopyLibrary(TheHobbit_First2.Id, BeverlyLibrary.Id);
+            booksCopiesLibraries.Add(BeverlyLibrary_TheHobbit_First2);
+            var AeosLibrary_TheZone_First2 = new BookCopyLibrary(TheZone_First2.Id, AeosLibrary.Id);
+            booksCopiesLibraries.Add(AeosLibrary_TheZone_First2);
+            var AeosLibrary_LordOfScoundrels_First1 = new BookCopyLibrary(LordOfScoundrels_First1.Id, AeosLibrary.Id);
+            booksCopiesLibraries.Add(AeosLibrary_LordOfScoundrels_First1);
+            var AeosLibrary_TheLostWeekend_First3 = new BookCopyLibrary(TheLostWeekend_First3.Id, AeosLibrary.Id);
+            booksCopiesLibraries.Add(AeosLibrary_TheLostWeekend_First3);
+            var AeosLibrary_TheSword_First1 = new BookCopyLibrary(TheSword_First1.Id, AeosLibrary.Id);
+            booksCopiesLibraries.Add(AeosLibrary_TheLostWeekend_First3);
 
 
-
-            return (visitorsLibrary, visitors, libraries, districts, Chester, books, genres);
+            return (visitorsLibraries, visitors, libraries, districts, Chester, books, genres, editions, bookCopies, booksCopiesLibraries);
         }
     }
 }

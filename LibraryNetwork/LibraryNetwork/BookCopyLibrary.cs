@@ -2,18 +2,18 @@
 
 namespace LibraryNetwork
 {
-    class VisitorLibrary
+    class BookCopyLibrary
     {
         public Guid Id { get; }
 
+        public Guid BookCopyId { get; }
+
         public Guid LibraryId { get; }
 
-        public Guid VisitorId { get; }
-
-        public VisitorLibrary(Guid visitorId, Guid libraryId)
+        public BookCopyLibrary(Guid bookCopyId, Guid libraryId)
         {
             Id = Guid.NewGuid();
-            VisitorId = visitorId;
+            BookCopyId = bookCopyId;
             LibraryId = libraryId;
         }
     }

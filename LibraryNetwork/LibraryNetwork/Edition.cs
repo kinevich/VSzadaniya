@@ -6,11 +6,11 @@ namespace LibraryNetwork
     {
         public Guid Id { get; }
 
-        public int Number { get; }
+        public string Number { get; }
 
         public int Pages { get; }
 
-        public Edition(int number, int pages)
+        public Edition(string number, int pages)
         {
             Id = Guid.NewGuid();
             Number = number;
