@@ -21,9 +21,10 @@ namespace LibraryNetwork
             //ListVisitorsCountByDistricts(libraries, districts, visitorsLibraries);
             //ListBooksCountByGenres(books, genres);
             //ListBooksCountByGenresByLibraries(books, genres, libraries, booksCopiesLibraries, booksCopies);
-            ListBooksCopiesByGenres(books, booksCopies, genres);
-            ShowTheMostReadBook(visits, booksCopiesLibraries, booksCopies, books);
-            ListMostReadBooksByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries);
+            //ListBooksCopiesByGenres(books, booksCopies, genres);
+            //ShowTheMostReadBook(visits, booksCopiesLibraries, booksCopies, books);
+            //ListMostReadBooksByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries);
+
         }
 
         private static void ListLibraryNames(List<Library> libraries)
@@ -229,14 +230,12 @@ namespace LibraryNetwork
         private static void ShowTheMostReadBook(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
                                                 List<BookCopy> booksCopies, List<Book> books)
         {
-            var query = from visit in visits
-                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
-                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
-                        join book in books on bookCopy.BookId equals book.Id
-                        group visit by book into g
-                        select new { Title = g.Key.Title, Count = g.Count() };
-
-            var theMostReadBook = query.OrderByDescending(i => i.Count).FirstOrDefault();
+            var theMostReadBook = (from visit in visits
+                                  join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                                  join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                  join book in books on bookCopy.BookId equals book.Id
+                                  group visit by book into g
+                                  select new { Title = g.Key.Title, Count = g.Count() }).OrderByDescending(i => i.Count).FirstOrDefault();
 
             Console.WriteLine(theMostReadBook.Title);
         }
@@ -267,6 +266,11 @@ namespace LibraryNetwork
                 Console.WriteLine(item.LibraryName);
                 Console.WriteLine(" " + item.MostReadBook.Title);
             }
+        }
+
+        private static void ShowTheMostReadGenre()
+        {
+            var 
         }
 
         private static (List<VisitorLibrary> visitorsLibraries, List<Visitor> visitors,
