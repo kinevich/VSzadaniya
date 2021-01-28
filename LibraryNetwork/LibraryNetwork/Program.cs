@@ -23,6 +23,7 @@ namespace LibraryNetwork
             //ListBooksCountByGenresByLibraries(books, genres, libraries, booksCopiesLibraries, booksCopies);
             ListBooksCopiesByGenres(books, booksCopies, genres);
             ShowTheMostReadBook(visits, booksCopiesLibraries, booksCopies, books);
+            ListMostReadBooksByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries);
         }
 
         private static void ListLibraryNames(List<Library> libraries)
@@ -238,6 +239,34 @@ namespace LibraryNetwork
             var theMostReadBook = query.OrderByDescending(i => i.Count).FirstOrDefault();
 
             Console.WriteLine(theMostReadBook.Title);
+        }
+
+        private static void ListMostReadBooksByLibraries(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                         List<BookCopy> booksCopies, List<Book> books, List<Library> libraries)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                        join book in books on bookCopy.BookId equals book.Id
+                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
+                        group book by library into g
+                        select new
+                        {
+                            LibraryName = g.Key.Name,
+                            MostReadBook = (from book in g
+                                           group book by book.Id into g1
+                                           select new
+                                           {
+                                               Title = books.Find(i => i.Id == g1.Key).Title,
+                                               Count = g1.Count()
+                                           }).OrderByDescending(i => i.Count).FirstOrDefault()
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine(item.LibraryName);
+                Console.WriteLine(" " + item.MostReadBook.Title);
+            }
         }
 
         private static (List<VisitorLibrary> visitorsLibraries, List<Visitor> visitors,
@@ -618,6 +647,7 @@ namespace LibraryNetwork
                 new Visit(LeightonAndersen_TempleLibrary.Id, TempleLibrary_TheCase_First1.Id, new DateTime(2012, 2, 14), new DateTime(2012, 3, 20)),
                 new Visit(MattFitzgerald_TempleLibrary.Id, TempleLibrary_Indigo_First1.Id, new DateTime(2013, 4, 20), new DateTime(2013, 4, 21)),
                 new Visit(MattFitzgerald_TempleLibrary.Id, TempleLibrary_TheLion_First1.Id, new DateTime(2003, 3, 2), new DateTime(2003, 4, 5)),
+                new Visit(MattFitzgerald_TempleLibrary.Id, TempleLibrary_AtomSmashing_First1.Id, new DateTime(2010, 3, 2), new DateTime(2010, 4, 5)),
                 new Visit(SanjeevAdams_DaydreamLibrary.Id, DaydreamLibrary_FoodChemistry_Third1.Id, new DateTime(2005, 5, 7), new DateTime(2005, 5, 15)),
                 new Visit(VerityMorton_DaydreamLibrary.Id, DaydreamLibrary_FoodChemistry_Third2.Id, new DateTime(2012, 3, 24), new DateTime(2012, 3, 27)),
                 new Visit(KadeTravis_DaydreamLibrary.Id, DaydreamLibrary_FoodChemistry_Third1.Id, new DateTime(2012, 4, 13), new DateTime(2012, 4, 20)),
@@ -647,7 +677,9 @@ namespace LibraryNetwork
                 new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_TheZone_First2.Id, new DateTime(2017, 6, 17), new DateTime(2017, 6, 25)),
                 new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_TheSword_First1.Id, new DateTime(2018, 6, 17), new DateTime(2018, 6, 25)),
                 new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_LordOfScoundrels_First1.Id, new DateTime(2019, 6, 17), new DateTime(2019, 6, 25)),
-                new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_LordOfScoundrels_First1.Id, new DateTime(2019, 7, 17), new DateTime(2019, 7, 25))
+                new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_LordOfScoundrels_First1.Id, new DateTime(2019, 7, 17), new DateTime(2019, 7, 25)),
+                new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_TheLostWeekend_First3.Id, new DateTime(2020, 7, 17), new DateTime(2020, 7, 25))
+
             };            
 
             return (visitorsLibraries, visitors, libraries, districts, Chester, books, genres, editions, bookCopies, booksCopiesLibraries,
