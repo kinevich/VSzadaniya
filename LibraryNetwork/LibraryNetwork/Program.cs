@@ -21,10 +21,11 @@ namespace LibraryNetwork
             //ListVisitorsCountByDistricts(libraries, districts, visitorsLibraries);
             //ListBooksCountByGenres(books, genres);
             //ListBooksCountByGenresByLibraries(books, genres, libraries, booksCopiesLibraries, booksCopies);
-            //ListBooksCopiesByGenres(books, booksCopies, genres);
-            //ShowTheMostReadBook(visits, booksCopiesLibraries, booksCopies, books);
-            //ListMostReadBooksByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries);
-
+            ListBooksCopiesByGenres(books, booksCopies, genres);
+            ShowTheMostReadBook(visits, booksCopiesLibraries, booksCopies, books);
+            ListMostReadBooksByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries);
+            ShowTheMostReadGenre(visits, booksCopiesLibraries, booksCopies, books, genres);
+            ListTheMostReadGenresByLibraries(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
         }
 
         private static void ListLibraryNames(List<Library> libraries)
@@ -268,9 +269,52 @@ namespace LibraryNetwork
             }
         }
 
-        private static void ShowTheMostReadGenre()
+        private static void ShowTheMostReadGenre(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                 List<BookCopy> booksCopies, List<Book> books, List<Genre> genres)
         {
-            var 
+            var theMostReadGenre = (from visit in visits
+                                    join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                                    join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                    join book in books on bookCopy.BookId equals book.Id
+                                    join genre in genres on book.GenreId equals genre.Id
+                                    group book by genre into g
+                                    select new
+                                    {
+                                        GenreName = g.Key.Name,
+                                        Count = g.Count()
+                                    }).OrderByDescending(i => i.Count).FirstOrDefault();
+
+            Console.WriteLine(theMostReadGenre.GenreName);
+        }
+
+        private static void ListTheMostReadGenresByLibraries(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                             List<BookCopy> booksCopies, List<Book> books, List<Genre> genres,
+                                                             List<Library> libraries)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                        join book in books on bookCopy.BookId equals book.Id
+                        join genre in genres on book.GenreId equals genre.Id
+                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
+                        group genre by library into g
+                        select new
+                        {
+                            LibraryName = g.Key.Name,
+                            MostReadGenre = (from genre in g
+                                             group genre by genre.Name into g1
+                                             select new
+                                             {
+                                                 GenreName = g1.Key,
+                                                 Count = g1.Count()
+                                             }).OrderByDescending(i => i.Count).FirstOrDefault()
+                        };
+            
+            foreach (var item in query)
+            {
+                Console.WriteLine(item.LibraryName);
+                Console.WriteLine(" " + item.MostReadGenre.GenreName);
+            }
         }
 
         private static (List<VisitorLibrary> visitorsLibraries, List<Visitor> visitors,
