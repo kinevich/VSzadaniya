@@ -9,12 +9,15 @@ namespace LibraryNetwork
         public Guid DistrictId { get; }
 
         public string Name { get; }
+
+        public TimeSpan Limit { get; }
         
-        public Library(string name, Guid districtId)
+        public Library(string name, Guid districtId, TimeSpan limit)
         {
             Id = Guid.NewGuid();
             DistrictId = districtId;
             Name = name;
+            Limit = limit;
         }
     }
 }

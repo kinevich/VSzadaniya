@@ -10,7 +10,7 @@ namespace LibraryNetwork
         {
             (List<VisitorLibrary> visitorsLibraries, List<Visitor> visitors, List<Library> libraries,
              List<District> districts, City city, List<Book> books, List<Genre> genres, List<Edition> editions,
-             List<BookCopy> booksCopies, List<BookCopyLibrary> booksCopiesLibraries) = GetData();
+             List<BookCopy> booksCopies, List<BookCopyLibrary> booksCopiesLibraries, List<Visit> visits) = GetData();
 
             //ListLibraryNames(libraries);
             //ListGroupedLibrariesByDistricts(libraries, districts);
@@ -20,7 +20,9 @@ namespace LibraryNetwork
             //ListVisitorsByDistricts(libraries, districts, visitors, visitorsLibraries);
             //ListVisitorsCountByDistricts(libraries, districts, visitorsLibraries);
             //ListBooksCountByGenres(books, genres);
-            ListBooksCountByGenresByLibraries(books, genres, libraries, booksCopiesLibraries, booksCopies);
+            //ListBooksCountByGenresByLibraries(books, genres, libraries, booksCopiesLibraries, booksCopies);
+            ListBooksCopiesByGenres(books, booksCopies, genres);
+            ShowTheMostReadBook(visits, booksCopiesLibraries, booksCopies, books);
         }
 
         private static void ListLibraryNames(List<Library> libraries)
@@ -207,10 +209,42 @@ namespace LibraryNetwork
             Console.WriteLine();
         }
 
+        private static void ListBooksCopiesByGenres(List<Book> books, List<BookCopy> booksCopies, List<Genre> genres)
+        {
+            var booksCopiesByGenres = from bookCopy in booksCopies
+                                      join book in books on bookCopy.BookId equals book.Id
+                                      join genre in genres on book.GenreId equals genre.Id
+                                      group bookCopy by genre into g
+                                      select new
+                                      {
+                                          GenreName = g.Key.Name,
+                                          Count = g.Count()
+                                      };
+
+            foreach (var booksCopiesByGenre in booksCopiesByGenres)
+                Console.WriteLine($"{booksCopiesByGenre.GenreName}-{booksCopiesByGenre.Count}");
+        }
+
+        private static void ShowTheMostReadBook(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                List<BookCopy> booksCopies, List<Book> books)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                        join book in books on bookCopy.BookId equals book.Id
+                        group visit by book into g
+                        select new { Title = g.Key.Title, Count = g.Count() };
+
+            var theMostReadBook = query.OrderByDescending(i => i.Count).FirstOrDefault();
+
+            Console.WriteLine(theMostReadBook.Title);
+        }
+
         private static (List<VisitorLibrary> visitorsLibraries, List<Visitor> visitors,
                         List<Library> libraries, List<District> districts, City city,
                         List<Book> books, List<Genre> genres, List<Edition> editions,
-                        List<BookCopy> booksCopies, List<BookCopyLibrary> booksCopiesLibraries) GetData()
+                        List<BookCopy> booksCopies, List<BookCopyLibrary> booksCopiesLibraries,
+                        List<Visit> visits) GetData()
         {
             var Chester = new City("Chester");
 
@@ -229,19 +263,19 @@ namespace LibraryNetwork
 
             var libraries = new List<Library>();
 
-            var TempleLibrary = new Library("Temple Library", BloodPlaza.Id); 
+            var TempleLibrary = new Library("Temple Library", BloodPlaza.Id, new TimeSpan(10, 0, 0, 0)); 
             libraries.Add(TempleLibrary);
-            var ObeliskLibrary = new Library("Obelisk Library", BloodPlaza.Id); 
+            var ObeliskLibrary = new Library("Obelisk Library", BloodPlaza.Id, new TimeSpan(15, 0, 0, 0)); 
             libraries.Add(ObeliskLibrary);
-            var AlgorithmLibrary = new Library("Algorithm Library", BloodPlaza.Id); 
+            var AlgorithmLibrary = new Library("Algorithm Library", BloodPlaza.Id, new TimeSpan(16, 0, 0, 0)); 
             libraries.Add(AlgorithmLibrary);
-            var DaydreamLibrary = new Library("Daydream Library", NorthLownerd.Id);
+            var DaydreamLibrary = new Library("Daydream Library", NorthLownerd.Id, new TimeSpan(20, 0, 0, 0));
             libraries.Add(DaydreamLibrary);
-            var AmenityLibrary = new Library("Amenity Library", NorthLownerd.Id); 
+            var AmenityLibrary = new Library("Amenity Library", NorthLownerd.Id, new TimeSpan(12, 0, 0, 0)); 
             libraries.Add(AmenityLibrary);
-            var BeverlyLibrary = new Library("Beverly Library", ButalpNorth.Id); 
+            var BeverlyLibrary = new Library("Beverly Library", ButalpNorth.Id, new TimeSpan(17, 0, 0, 0)); 
             libraries.Add(BeverlyLibrary);
-            var AeosLibrary = new Library("Aeos Library", CherriftWood.Id); 
+            var AeosLibrary = new Library("Aeos Library", CherriftWood.Id, new TimeSpan(21, 0, 0, 0)); 
             libraries.Add(AeosLibrary);            
 
             var visitors = new List<Visitor>();
@@ -398,7 +432,6 @@ namespace LibraryNetwork
             books.Add(AtomSmashing);
             var FoodChemistry = new Book(@"""Food Chemistry""", DentonFrazier.Id, sciFiGenre.Id); 
             books.Add(FoodChemistry);
-            //34
 
             var editions = new List<Edition>();
 
@@ -577,10 +610,48 @@ namespace LibraryNetwork
             var AeosLibrary_TheLostWeekend_First3 = new BookCopyLibrary(TheLostWeekend_First3.Id, AeosLibrary.Id);
             booksCopiesLibraries.Add(AeosLibrary_TheLostWeekend_First3);
             var AeosLibrary_TheSword_First1 = new BookCopyLibrary(TheSword_First1.Id, AeosLibrary.Id);
-            booksCopiesLibraries.Add(AeosLibrary_TheLostWeekend_First3);
+            booksCopiesLibraries.Add(AeosLibrary_TheSword_First1);
 
+            var visits = new List<Visit>
+            {
+                new Visit(SanjeevAdams_TempleLibrary.Id, TempleLibrary_TheCase_First1.Id, new DateTime(2012, 1, 20), new DateTime(2012, 1, 25)),
+                new Visit(LeightonAndersen_TempleLibrary.Id, TempleLibrary_TheCase_First1.Id, new DateTime(2012, 2, 14), new DateTime(2012, 3, 20)),
+                new Visit(MattFitzgerald_TempleLibrary.Id, TempleLibrary_Indigo_First1.Id, new DateTime(2013, 4, 20), new DateTime(2013, 4, 21)),
+                new Visit(MattFitzgerald_TempleLibrary.Id, TempleLibrary_TheLion_First1.Id, new DateTime(2003, 3, 2), new DateTime(2003, 4, 5)),
+                new Visit(SanjeevAdams_DaydreamLibrary.Id, DaydreamLibrary_FoodChemistry_Third1.Id, new DateTime(2005, 5, 7), new DateTime(2005, 5, 15)),
+                new Visit(VerityMorton_DaydreamLibrary.Id, DaydreamLibrary_FoodChemistry_Third2.Id, new DateTime(2012, 3, 24), new DateTime(2012, 3, 27)),
+                new Visit(KadeTravis_DaydreamLibrary.Id, DaydreamLibrary_FoodChemistry_Third1.Id, new DateTime(2012, 4, 13), new DateTime(2012, 4, 20)),
+                new Visit(KadeTravis_DaydreamLibrary.Id, DaydreamLibrary_FoodChemistry_Third3.Id, new DateTime(2012, 6, 4), new DateTime(2012, 6, 12)),
+                new Visit(SanjeevAdams_DaydreamLibrary.Id, DaydreamLibrary_TheHobbit_First1.Id, new DateTime(2012, 7, 20), new DateTime(2012, 8, 9)),
+                new Visit(VerityMorton_DaydreamLibrary.Id, DaydreamLibrary_Mercy_First1.Id, new DateTime(2012, 7, 10), new DateTime(2012, 7, 15)),
+                new Visit(KadeTravis_DaydreamLibrary.Id, DaydreamLibrary_BlueLightning_First1.Id, new DateTime(2012, 8, 10), new DateTime(2012, 8, 18)),
+                new Visit(KadeTravis_DaydreamLibrary.Id, DaydreamLibrary_TheHobbit_First1.Id, new DateTime(2012, 9, 10), new DateTime(2012, 9, 12)),
+                new Visit(VerityMorton_DaydreamLibrary.Id, DaydreamLibrary_TheHobbit_First1.Id, new DateTime(2012, 10, 10), new DateTime(2012, 10, 19)),
+                new Visit(ClaireMackie_ObeliskLibrary .Id, ObeliskLibrary_TheCase_First2.Id, new DateTime(2020, 12, 1)),
+                new Visit(KhalidHarding_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First1.Id, new DateTime(2015, 3, 8), new DateTime(2015, 3, 15)),
+                new Visit(BeaudenNielsen_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First1.Id, new DateTime(2015, 4, 8), new DateTime(2015, 4, 15)),
+                new Visit(KellanConroy_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First2.Id, new DateTime(2015, 5, 15), new DateTime(2015, 5, 15)),
+                new Visit(ClaireMackie_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First2.Id, new DateTime(2015, 6, 15), new DateTime(2015, 6, 15)),
+                new Visit(HaleyBarnard_AlgorithmLibrary .Id, AlgorithmLibrary_Darkside_First1.Id, new DateTime(2016, 1, 4), new DateTime(2016, 1, 12)),
+                new Visit(RehaanYork_AlgorithmLibrary .Id, AlgorithmLibrary_FoodChemistry_First1.Id, new DateTime(2016, 2, 4), new DateTime(2016, 2, 12)),
+                new Visit(HaleyBarnard_AlgorithmLibrary.Id, AlgorithmLibrary_FoodChemistry_Second1.Id, new DateTime(2016, 4, 4), new DateTime(2016, 4, 12)),
+                new Visit(HaleyBarnard_AlgorithmLibrary.Id, AlgorithmLibrary_FoodChemistry_Second2.Id, new DateTime(2016, 4, 5), new DateTime(2016, 4, 20)),
+                new Visit(RehaanYork_AlgorithmLibrary.Id, AlgorithmLibrary_Indigo_First2.Id, new DateTime(2011, 6, 4), new DateTime(2011, 6, 15)),
+                new Visit(MattFitzgerald_BeverlyLibrary.Id, BeverlyLibrary_TheMystery_First1.Id, new DateTime(2011, 6, 3), new DateTime(2011, 6, 5)),
+                new Visit(KhalidHarding_BeverlyLibrary.Id, BeverlyLibrary_TheMystery_First2.Id, new DateTime(2011, 6, 12), new DateTime(2011, 6, 15)),
+                new Visit(MattFitzgerald_BeverlyLibrary.Id, BeverlyLibrary_TheFrozenDead_First1.Id, new DateTime(2011, 6, 9), new DateTime(2011, 6, 23)),
+                new Visit(KhalidHarding_BeverlyLibrary.Id, BeverlyLibrary_Mercy_First3.Id, new DateTime(2011, 7, 4), new DateTime(2011, 7, 15)),
+                new Visit(MattFitzgerald_BeverlyLibrary.Id, BeverlyLibrary_TheHobbit_First2.Id, new DateTime(2011, 8, 4), new DateTime(2011, 8, 15)),
+                new Visit(MattFitzgerald_BeverlyLibrary.Id, BeverlyLibrary_TheHobbit_First2.Id, new DateTime(2011, 6, 17), new DateTime(2011, 6, 25)),
+                new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_TheZone_First2.Id, new DateTime(2016, 6, 17), new DateTime(2016, 6, 25)),
+                new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_TheZone_First2.Id, new DateTime(2017, 6, 17), new DateTime(2017, 6, 25)),
+                new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_TheSword_First1.Id, new DateTime(2018, 6, 17), new DateTime(2018, 6, 25)),
+                new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_LordOfScoundrels_First1.Id, new DateTime(2019, 6, 17), new DateTime(2019, 6, 25)),
+                new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_LordOfScoundrels_First1.Id, new DateTime(2019, 7, 17), new DateTime(2019, 7, 25))
+            };            
 
-            return (visitorsLibraries, visitors, libraries, districts, Chester, books, genres, editions, bookCopies, booksCopiesLibraries);
+            return (visitorsLibraries, visitors, libraries, districts, Chester, books, genres, editions, bookCopies, booksCopiesLibraries,
+                    visits);
         }
     }
 }
