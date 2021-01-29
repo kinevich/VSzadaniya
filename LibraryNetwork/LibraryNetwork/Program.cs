@@ -21,11 +21,12 @@ namespace LibraryNetwork
             //ListVisitorsCountByDistricts(libraries, districts, visitorsLibraries);
             //ListBooksCountByGenres(books, genres);
             //ListBooksCountByGenresByLibraries(books, genres, libraries, booksCopiesLibraries, booksCopies);
-            ListBooksCopiesByGenres(books, booksCopies, genres);
-            ShowTheMostReadBook(visits, booksCopiesLibraries, booksCopies, books);
-            ListMostReadBooksByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries);
-            ShowTheMostReadGenre(visits, booksCopiesLibraries, booksCopies, books, genres);
-            ListTheMostReadGenresByLibraries(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
+            ////ListBooksCopiesByGenres(books, booksCopies, genres);
+            ////ShowTheMostReadBook(visits, booksCopiesLibraries, booksCopies, books);
+            ////ListMostReadBooksByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries);
+            ////ShowTheMostReadGenre(visits, booksCopiesLibraries, booksCopies, books, genres);
+            ////ListTheMostReadGenresByLibraries(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
+            ListTopTwoBooksByGenres(visits, booksCopiesLibraries, booksCopies, books, genres); 
         }
 
         private static void ListLibraryNames(List<Library> libraries)
@@ -226,6 +227,8 @@ namespace LibraryNetwork
 
             foreach (var booksCopiesByGenre in booksCopiesByGenres)
                 Console.WriteLine($"{booksCopiesByGenre.GenreName}-{booksCopiesByGenre.Count}");
+
+            Console.WriteLine();
         }
 
         private static void ShowTheMostReadBook(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
@@ -239,6 +242,8 @@ namespace LibraryNetwork
                                   select new { Title = g.Key.Title, Count = g.Count() }).OrderByDescending(i => i.Count).FirstOrDefault();
 
             Console.WriteLine(theMostReadBook.Title);
+
+            Console.WriteLine();
         }
 
         private static void ListMostReadBooksByLibraries(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
@@ -267,6 +272,8 @@ namespace LibraryNetwork
                 Console.WriteLine(item.LibraryName);
                 Console.WriteLine(" " + item.MostReadBook.Title);
             }
+
+            Console.WriteLine();
         }
 
         private static void ShowTheMostReadGenre(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
@@ -285,6 +292,8 @@ namespace LibraryNetwork
                                     }).OrderByDescending(i => i.Count).FirstOrDefault();
 
             Console.WriteLine(theMostReadGenre.GenreName);
+
+            Console.WriteLine();
         }
 
         private static void ListTheMostReadGenresByLibraries(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
@@ -315,6 +324,47 @@ namespace LibraryNetwork
                 Console.WriteLine(item.LibraryName);
                 Console.WriteLine(" " + item.MostReadGenre.GenreName);
             }
+
+            Console.WriteLine();
+        }
+
+        private static void ListTopTwoBooksByGenres(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                    List<BookCopy> booksCopies, List<Book> books, List<Genre> genres)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                        join book in books on bookCopy.BookId equals book.Id
+                        join genre in genres on book.GenreId equals genre.Id
+                        group book by genre into g
+                        select new
+                        {
+                            GenreName = g.Key.Name,
+                            TopTwo = (from book in g
+                                      group book by book.Id into g1
+                                      select new
+                                      {
+                                          Title = books.Find(b => b.Id == g1.Key).Title,
+                                          Count = g1.Count()
+                                      }).OrderByDescending(i => i.Count).Take(2)
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine(item.GenreName);
+
+                foreach (var book in item.TopTwo)
+                    Console.WriteLine(book.Title);
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void TopTwoBooksByGenresByLibraries(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                           List<BookCopy> booksCopies, List<Book> books, List<Library> libraries,
+                                                           List<Genre> genres)
+        {
+            
         }
 
         private static (List<VisitorLibrary> visitorsLibraries, List<Visitor> visitors,
@@ -705,7 +755,7 @@ namespace LibraryNetwork
                 new Visit(KadeTravis_DaydreamLibrary.Id, DaydreamLibrary_BlueLightning_First1.Id, new DateTime(2012, 8, 10), new DateTime(2012, 8, 18)),
                 new Visit(KadeTravis_DaydreamLibrary.Id, DaydreamLibrary_TheHobbit_First1.Id, new DateTime(2012, 9, 10), new DateTime(2012, 9, 12)),
                 new Visit(VerityMorton_DaydreamLibrary.Id, DaydreamLibrary_TheHobbit_First1.Id, new DateTime(2012, 10, 10), new DateTime(2012, 10, 19)),
-                new Visit(ClaireMackie_ObeliskLibrary .Id, ObeliskLibrary_TheCase_First2.Id, new DateTime(2020, 12, 1)),
+                new Visit(ClaireMackie_ObeliskLibrary .Id, ObeliskLibrary_TheCase_First2.Id, new DateTime(2021, 1, 1)),
                 new Visit(KhalidHarding_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First1.Id, new DateTime(2015, 3, 8), new DateTime(2015, 3, 15)),
                 new Visit(BeaudenNielsen_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First1.Id, new DateTime(2015, 4, 8), new DateTime(2015, 4, 15)),
                 new Visit(KellanConroy_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First2.Id, new DateTime(2015, 5, 15), new DateTime(2015, 5, 15)),
@@ -725,9 +775,8 @@ namespace LibraryNetwork
                 new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_TheZone_First2.Id, new DateTime(2017, 6, 17), new DateTime(2017, 6, 25)),
                 new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_TheSword_First1.Id, new DateTime(2018, 6, 17), new DateTime(2018, 6, 25)),
                 new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_LordOfScoundrels_First1.Id, new DateTime(2019, 6, 17), new DateTime(2019, 6, 25)),
-                new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_LordOfScoundrels_First1.Id, new DateTime(2019, 7, 17), new DateTime(2019, 7, 25)),
-                new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_TheLostWeekend_First3.Id, new DateTime(2020, 7, 17), new DateTime(2020, 7, 25))
-
+                new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_LordOfScoundrels_First1.Id, new DateTime(2019, 6, 26), new DateTime(2019, 7, 27)),
+                new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_TheLostWeekend_First3.Id, new DateTime(2019, 6, 1), new DateTime(2019, 6, 5))
             };            
 
             return (visitorsLibraries, visitors, libraries, districts, Chester, books, genres, editions, bookCopies, booksCopiesLibraries,
