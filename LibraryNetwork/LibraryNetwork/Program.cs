@@ -12,6 +12,17 @@ namespace LibraryNetwork
              List<District> districts, City city, List<Book> books, List<Genre> genres, List<Edition> editions,
              List<BookCopy> booksCopies, List<BookCopyLibrary> booksCopiesLibraries, List<Visit> visits) = GetData();
 
+            var query = from visit in visits
+                        join visitorLibrary in visitorsLibraries on visit.VisitorLibraryId equals visitorLibrary.Id
+                        join visitor in visitors on visitorLibrary.VisitorId equals visitor.Id
+                        join library in libraries on visitorLibrary.LibraryId equals library.Id
+                        where visit.HowMuchRead > library.Limit
+                        group visitor by visitor into g
+                        select g.Key.Name;
+
+            foreach (var visitorName in query)
+                Console.WriteLine(visitorName);
+
             //ListLibraryNames(libraries);
             //ListGroupedLibrariesByDistricts(libraries, districts);
             //ListDistrictsDontHaveLibraries(libraries, districts);
@@ -21,12 +32,29 @@ namespace LibraryNetwork
             //ListVisitorsCountByDistricts(libraries, districts, visitorsLibraries);
             //ListBooksCountByGenres(books, genres);
             //ListBooksCountByGenresByLibraries(books, genres, libraries, booksCopiesLibraries, booksCopies);
-            ////ListBooksCopiesByGenres(books, booksCopies, genres);
-            ////ShowTheMostReadBook(visits, booksCopiesLibraries, booksCopies, books);
-            ////ListMostReadBooksByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries);
-            ////ShowTheMostReadGenre(visits, booksCopiesLibraries, booksCopies, books, genres);
-            ////ListTheMostReadGenresByLibraries(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
-            ListTopTwoBooksByGenres(visits, booksCopiesLibraries, booksCopies, books, genres); 
+            //ListBooksCopiesByGenres(books, booksCopies, genres);
+            //ShowTheMostReadBook(visits, booksCopiesLibraries, booksCopies, books);
+            //ListMostReadBooksByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries);
+            //ShowTheMostReadGenre(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //ListTheMostReadGenresByLibraries(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
+            //ListTopTwoBooksByGenres(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //TopTwoBooksByGenresByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
+
+            //ShowTheMostReadBookByMonths(visits, booksCopiesLibraries, booksCopies, books);
+            //ListMostReadBooksByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, libraries);
+            //ShowTheMostReadGenreByMonths(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //ListTheMostReadGenresByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
+            //ListTopTwoBooksByGenresByMonths(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //TopTwoBooksByGenresByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
+
+            //ShowTheMostReadBookByYears(visits, booksCopiesLibraries, booksCopies, books);
+            //ListMostReadBooksByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, libraries);
+            //ShowTheMostReadGenreByYears(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //ListTheMostReadGenresByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
+            //ListTopTwoBooksByGenresByYears(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //TopTwoBooksByGenresByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
+
+            ListVisitorsWhoHaveExceededReadingTime()
         }
 
         private static void ListLibraryNames(List<Library> libraries)
@@ -311,10 +339,10 @@ namespace LibraryNetwork
                         {
                             LibraryName = g.Key.Name,
                             MostReadGenre = (from genre in g
-                                             group genre by genre.Name into g1
+                                             group genre by genre.Id into g1
                                              select new
                                              {
-                                                 GenreName = g1.Key,
+                                                 GenreName = genres.Find(g => g.Id == g1.Key).Name,
                                                  Count = g1.Count()
                                              }).OrderByDescending(i => i.Count).FirstOrDefault()
                         };
@@ -354,7 +382,7 @@ namespace LibraryNetwork
                 Console.WriteLine(item.GenreName);
 
                 foreach (var book in item.TopTwo)
-                    Console.WriteLine(book.Title);
+                    Console.WriteLine(" " + book.Title);
             }
 
             Console.WriteLine();
@@ -364,8 +392,559 @@ namespace LibraryNetwork
                                                            List<BookCopy> booksCopies, List<Book> books, List<Library> libraries,
                                                            List<Genre> genres)
         {
-            
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                        join book in books on bookCopy.BookId equals book.Id
+                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
+                        group book by library into g
+                        select new
+                        {
+                            LibraryName = g.Key.Name,
+                            Genres = from book in g
+                                     join genre in genres on book.GenreId equals genre.Id
+                                     group book by genre into g1
+                                     select new
+                                     {
+                                         GenreName = g1.Key.Name,
+                                         TopTwo = (from book in g1
+                                                   group book by book.Id into g2
+                                                   select new
+                                                   {
+                                                       Title = books.Find(b => b.Id == g2.Key).Title,
+                                                       Count = g2.Count()
+                                                   }).OrderByDescending(i => i.Count).Take(2)
+                                     }
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine(item.LibraryName);
+
+                foreach (var genre in item.Genres)
+                {
+                    Console.WriteLine(" " + genre.GenreName);
+
+                    foreach (var book in genre.TopTwo)
+                        Console.WriteLine("  " + book.Title);
+                }
+            }
+
+            Console.WriteLine();
         }
+
+        private static void ShowTheMostReadBookByMonths(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                        List<BookCopy> booksCopies, List<Book> books)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                        join book in books on bookCopy.BookId equals book.Id
+                        group book by new { visit.WhenGetBook.Year, visit.WhenGetBook.Month } into g
+                        orderby g.Key.Year, g.Key.Month
+                        select new
+                        {
+                            g.Key.Year,
+                            g.Key.Month,
+                            TheMostReadBook = (from book in g
+                                               group book by book.Id into g1
+                                               select new
+                                               {
+                                                   Title = books.Find(i => i.Id == g1.Key).Title,
+                                                   Count = g.Count()
+                                               }).OrderByDescending(i => i.Count).FirstOrDefault()
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year}/{item.Month} - {item.TheMostReadBook.Title}");
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ListMostReadBooksByLibrariesByMonths(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                                 List<BookCopy> booksCopies, List<Book> books, List<Library> libraries)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        group bookCopyLibrary by new { visit.WhenGetBook.Year, visit.WhenGetBook.Month } into g
+                        orderby g.Key.Year, g.Key.Month
+                        select new
+                        {
+                            g.Key.Year,
+                            g.Key.Month,
+                            Libraries = from bookCopyLibrary in g
+                                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                        join book in books on bookCopy.BookId equals book.Id
+                                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
+                                        group book by library into g1
+                                        select new
+                                        {
+                                            LibraryName = g1.Key.Name,
+                                            TheMostReadBook = (from book in g1
+                                                               group book by book.Id into g2
+                                                               select new
+                                                               {
+                                                                   Title = books.Find(i => i.Id == g2.Key).Title,
+                                                                   Count = g2.Count()
+                                                               }).OrderByDescending(i => i.Count).FirstOrDefault()
+                                        }
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year}/{item.Month}");
+
+                foreach (var library in item.Libraries)
+                    Console.WriteLine($" {library.LibraryName} - {library.TheMostReadBook.Title}");
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ShowTheMostReadGenreByMonths(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                         List<BookCopy> booksCopies, List<Book> books, List<Genre> genres)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                        join book in books on bookCopy.BookId equals book.Id
+                        join genre in genres on book.GenreId equals genre.Id
+                        group genre by new { visit.WhenGetBook.Year, visit.WhenGetBook.Month } into g
+                        orderby g.Key.Year, g.Key.Month
+                        select new
+                        {
+                            g.Key.Year,
+                            g.Key.Month,
+                            TheMostReadGenre = (from genre in g
+                                                group genre by genre.Id into g1
+                                                select new
+                                                {
+                                                    GenreName = genres.Find(g => g.Id == g1.Key).Name,
+                                                    Count = g1.Count()
+                                                }).OrderByDescending(i => i.Count).FirstOrDefault()
+                        };
+
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year}/{item.Month} - {item.TheMostReadGenre.GenreName}");
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ListTheMostReadGenresByLibrariesByMonths(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                                     List<BookCopy> booksCopies, List<Book> books, List<Genre> genres,
+                                                                     List<Library> libraries)
+        {
+            var query = from visit in visits
+                        group visit by new { visit.WhenGetBook.Year, visit.WhenGetBook.Month } into g
+                        orderby g.Key.Year, g.Key.Month
+                        select new
+                        {
+                            g.Key.Year,
+                            g.Key.Month,
+                            Libraries = from visit in g
+                                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                        join book in books on bookCopy.BookId equals book.Id
+                                        join genre in genres on book.GenreId equals genre.Id
+                                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
+                                        group genre by library into g1
+                                        select new
+                                        {
+                                            LibraryName = g1.Key.Name,
+                                            TheMostReadGenre = (from genre in g1
+                                                                group genre by genre.Id into g2
+                                                                select new
+                                                                {
+                                                                    GenreName = genres.Find(g => g.Id == g2.Key).Name,
+                                                                    Count = g2.Count()
+                                                                }).OrderByDescending(i => i.Count).FirstOrDefault()
+                                        }
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year}/{item.Month}");
+
+                foreach (var library in item.Libraries)
+                    Console.WriteLine($"{library.LibraryName} - {library.TheMostReadGenre.GenreName}");
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ListTopTwoBooksByGenresByMonths(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                            List<BookCopy> booksCopies, List<Book> books, List<Genre> genres)
+        {
+            var query = from visit in visits
+                        group visit by new { visit.WhenGetBook.Year, visit.WhenGetBook.Month } into g
+                        orderby g.Key.Year, g.Key.Month
+                        select new
+                        {
+                            g.Key.Year,
+                            g.Key.Month,
+                            Genres = from visit in g
+                                     join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                                     join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                     join book in books on bookCopy.BookId equals book.Id
+                                     join genre in genres on book.GenreId equals genre.Id
+                                     group book by genre into g1
+                                     select new
+                                     {
+                                         GenreName = g1.Key.Name,
+                                         TopTwo = (from book in g1
+                                                   group book by book.Id into g2
+                                                   select new
+                                                   {
+                                                       Title = books.Find(b => b.Id == g2.Key).Title,
+                                                       Count = g2.Count()
+                                                   }).OrderByDescending(i => i.Count).Take(2)
+                                     }
+
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year}/{item.Month}");
+
+                foreach (var genre in item.Genres)
+                {
+                    Console.WriteLine($" {genre.GenreName}");
+
+                    foreach (var book in genre.TopTwo)
+                        Console.WriteLine($"  {book.Title}");
+                }
+
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void TopTwoBooksByGenresByLibrariesByMonths(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                                   List<BookCopy> booksCopies, List<Book> books, List<Library> libraries,
+                                                                   List<Genre> genres)
+        {
+            var query = from visit in visits
+                        group visit by new { visit.WhenGetBook.Year, visit.WhenGetBook.Month } into g
+                        orderby g.Key.Year, g.Key.Month
+                        select new
+                        {
+                            g.Key.Year,
+                            g.Key.Month,
+                            Libraries = from visit in g
+                                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                        join book in books on bookCopy.BookId equals book.Id
+                                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
+                                        group book by library into g1
+                                        select new
+                                        {
+                                            LibraryName = g1.Key.Name,
+                                            Genres = from book in g1
+                                                     join genre in genres on book.GenreId equals genre.Id
+                                                     group book by genre into g2
+                                                     select new
+                                                     {
+                                                         GenreName = g2.Key.Name,
+                                                         TopTwo = (from book in g2
+                                                                   group book by book.Id into g3
+                                                                   select new
+                                                                   {
+                                                                       Title = books.Find(b => b.Id == g3.Key).Title,
+                                                                       Count = g3.Count()
+                                                                   }).OrderByDescending(i => i.Count).Take(2)
+                                                     }
+                                        }
+
+                        }; 
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year}/{item.Month}");
+
+                foreach (var library in item.Libraries)
+                {
+                    Console.WriteLine($" {library.LibraryName}");
+
+                    foreach (var genre in library.Genres)
+                    {
+                        Console.WriteLine($"  {genre.GenreName}");
+
+                        foreach (var book in genre.TopTwo)
+                            Console.WriteLine($"   {book.Title}");
+                    }
+                }
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ShowTheMostReadBookByYears(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                        List<BookCopy> booksCopies, List<Book> books)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                        join book in books on bookCopy.BookId equals book.Id
+                        group book by visit.WhenGetBook.Year into g
+                        orderby g.Key
+                        select new
+                        {
+                            Year = g.Key,
+                            TheMostReadBook = (from book in g
+                                               group book by book.Id into g1
+                                               select new
+                                               {
+                                                   Title = books.Find(i => i.Id == g1.Key).Title,
+                                                   Count = g.Count()
+                                               }).OrderByDescending(i => i.Count).FirstOrDefault()
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year} - {item.TheMostReadBook.Title}");
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ListMostReadBooksByLibrariesByYears(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                                 List<BookCopy> booksCopies, List<Book> books, List<Library> libraries)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        group bookCopyLibrary by visit.WhenGetBook.Year into g
+                        orderby g.Key
+                        select new
+                        {
+                            Year = g.Key,
+                            Libraries = from bookCopyLibrary in g
+                                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                        join book in books on bookCopy.BookId equals book.Id
+                                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
+                                        group book by library into g1
+                                        select new
+                                        {
+                                            LibraryName = g1.Key.Name,
+                                            TheMostReadBook = (from book in g1
+                                                               group book by book.Id into g2
+                                                               select new
+                                                               {
+                                                                   Title = books.Find(i => i.Id == g2.Key).Title,
+                                                                   Count = g2.Count()
+                                                               }).OrderByDescending(i => i.Count).FirstOrDefault()
+                                        }
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year}");
+
+                foreach (var library in item.Libraries)
+                    Console.WriteLine($" {library.LibraryName} - {library.TheMostReadBook.Title}");
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ShowTheMostReadGenreByYears(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                         List<BookCopy> booksCopies, List<Book> books, List<Genre> genres)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                        join book in books on bookCopy.BookId equals book.Id
+                        join genre in genres on book.GenreId equals genre.Id
+                        group genre by visit.WhenGetBook.Year into g
+                        orderby g.Key
+                        select new
+                        {
+                            Year = g.Key,
+                            TheMostReadGenre = (from genre in g
+                                                group genre by genre.Id into g1
+                                                select new
+                                                {
+                                                    GenreName = genres.Find(g => g.Id == g1.Key).Name,
+                                                    Count = g1.Count()
+                                                }).OrderByDescending(i => i.Count).FirstOrDefault()
+                        };
+
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year} - {item.TheMostReadGenre.GenreName}");
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ListTheMostReadGenresByLibrariesByYears(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                                     List<BookCopy> booksCopies, List<Book> books, List<Genre> genres,
+                                                                     List<Library> libraries)
+        {
+            var query = from visit in visits
+                        group visit by visit.WhenGetBook.Year into g
+                        orderby g.Key
+                        select new
+                        {
+                            Year = g.Key,
+                            Libraries = from visit in g
+                                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                        join book in books on bookCopy.BookId equals book.Id
+                                        join genre in genres on book.GenreId equals genre.Id
+                                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
+                                        group genre by library into g1
+                                        select new
+                                        {
+                                            LibraryName = g1.Key.Name,
+                                            TheMostReadGenre = (from genre in g1
+                                                                group genre by genre.Id into g2
+                                                                select new
+                                                                {
+                                                                    GenreName = genres.Find(g => g.Id == g2.Key).Name,
+                                                                    Count = g2.Count()
+                                                                }).OrderByDescending(i => i.Count).FirstOrDefault()
+                                        }
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year}");
+
+                foreach (var library in item.Libraries)
+                    Console.WriteLine($" {library.LibraryName} - {library.TheMostReadGenre.GenreName}");
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ListTopTwoBooksByGenresByYears(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                            List<BookCopy> booksCopies, List<Book> books, List<Genre> genres)
+        {
+            var query = from visit in visits
+                        group visit by visit.WhenGetBook.Year into g
+                        orderby g.Key
+                        select new
+                        {
+                            Year = g.Key,
+                            Genres = from visit in g
+                                     join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                                     join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                     join book in books on bookCopy.BookId equals book.Id
+                                     join genre in genres on book.GenreId equals genre.Id
+                                     group book by genre into g1
+                                     select new
+                                     {
+                                         GenreName = g1.Key.Name,
+                                         TopTwo = (from book in g1
+                                                   group book by book.Id into g2
+                                                   select new
+                                                   {
+                                                       Title = books.Find(b => b.Id == g2.Key).Title,
+                                                       Count = g2.Count()
+                                                   }).OrderByDescending(i => i.Count).Take(2)
+                                     }
+
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year}");
+
+                foreach (var genre in item.Genres)
+                {
+                    Console.WriteLine($" {genre.GenreName}");
+
+                    foreach (var book in genre.TopTwo)
+                        Console.WriteLine($"  {book.Title}");
+                }
+
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void TopTwoBooksByGenresByLibrariesByYears(List<Visit> visits, List<BookCopyLibrary> booksCopiesLibraries,
+                                                                   List<BookCopy> booksCopies, List<Book> books, List<Library> libraries,
+                                                                   List<Genre> genres)
+        {
+            var query = from visit in visits
+                        group visit by visit.WhenGetBook.Year into g
+                        orderby g.Key
+                        select new
+                        {
+                            Year = g.Key,
+                            Libraries = from visit in g
+                                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                        join book in books on bookCopy.BookId equals book.Id
+                                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
+                                        group book by library into g1
+                                        select new
+                                        {
+                                            LibraryName = g1.Key.Name,
+                                            Genres = from book in g1
+                                                     join genre in genres on book.GenreId equals genre.Id
+                                                     group book by genre into g2
+                                                     select new
+                                                     {
+                                                         GenreName = g2.Key.Name,
+                                                         TopTwo = (from book in g2
+                                                                   group book by book.Id into g3
+                                                                   select new
+                                                                   {
+                                                                       Title = books.Find(b => b.Id == g3.Key).Title,
+                                                                       Count = g3.Count()
+                                                                   }).OrderByDescending(i => i.Count).Take(2)
+                                                     }
+                                        }
+
+                        };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item.Year}");
+
+                foreach (var library in item.Libraries)
+                {
+                    Console.WriteLine($" {library.LibraryName}");
+
+                    foreach (var genre in library.Genres)
+                    {
+                        Console.WriteLine($"  {genre.GenreName}");
+
+                        foreach (var book in genre.TopTwo)
+                            Console.WriteLine($"   {book.Title}");
+                    }
+                }
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void ListVisitorsWhoHaveExceededReadingTime(List<Visit> visits, List<VisitorLibrary> visitorsLibraries,
+                                                                   List<Visitor> visitors, List<Library> libraries)
+        {
+            var query = from visit in visits
+                        join visitorLibrary in visitorsLibraries on visit.VisitorLibraryId equals visitorLibrary.Id
+                        join visitor in visitors on visitorLibrary.VisitorId equals visitor.Id
+                        join library in libraries on visitorLibrary.LibraryId equals library.Id
+                        where visit.HowMuchRead > library.Limit
+                        group visitor by visitor into g
+                        select g.Key.Name;
+
+            foreach (var visitorName in query)
+                Console.WriteLine(visitorName);
+
+            Console.WriteLine();
+        }
+
+
 
         private static (List<VisitorLibrary> visitorsLibraries, List<Visitor> visitors,
                         List<Library> libraries, List<District> districts, City city,
@@ -785,64 +1364,36 @@ namespace LibraryNetwork
     }
 }
 
-
 //· Вывести список названий библиотек.
-
 //· Сгруппировать библиотеки по районам и вывести ввиде:
-
 //«Название района1» («Количество библиотек в районе»)
-
 //«Библиотека1»
-
 //«Библиотека2»
-
 //«Название района2» («Количество библиотек в районе»)
-
 //«Библиотека3»
-
 //«Библиотека4»
-
 //«Библиотека5»
-
 //«Количество библиотек в районе» рассчитывается методом Count() на каждой группировке.
-
 //· Вывести список районов, где нет ни одной библиотеки
-
 //· Вывести всех посетителей всех библиотек
-
 //· Вывести всех посетителей с группировкой по библиотеке
-
 //· Вывести всех посетителей с группировкой по району
-
 //· Вывести районы и количество посетителей. Отсортируй по количеству посетителей по убыванию.
-
 //· Для каждого жанра посчитать количество книг в нем (по всем библиотекам (без группировки) и по каждой библиотеке (с группировкой по библиотеке))
-
 //· Для каждого жанра посчитать количество экземпляров книг
-
 //· Вывести самую читаемую книгу по всем библиотекам
-
 //· Вывести самую читаемую книгу для каждой библиотеки
-
 //· Вывести самый читаемый жанр по всем библиотекам
-
 //· Вывести самый читаемый жанр для каждой библиотеки
-
 //· Вывести топ 10 самых читаемых книг по каждому жанру (по всем библиотекам + по каждой в отдельности)
-
 //· Повторить все 5 предыдущих пункта, но с разбивкой по месяцам
-
 //· То же самое, но с разбивкой по годам
-
 //· Вывести всех посетителей, кто превысил время чтения книги
 //  (давай сделаем этот параметр свой у каждой библиотеки).
 //  В качестве усложнения его можно рассчитывать исходя из жанра 
 //  (к примеру, для редкой периодики -50% недели от стандарта, для старой классики +100%)
-
 //· Вывести книги по библиотекам, все экземпляры которых сейчас на руках у посетителей
-
 //· Вывести топ 10 самых долгочитаемых книг по каждому жанру (по каждой библиотеке и по всем библиотекам)
 
 //Придумай еще как минимум 5 запросов с выводом какой-либо статистики. А лучше больше. Модель довольно богатая, можно хорошо на ней попрактиковаться.
-
 //Если хочешь еще усложнить – создай города. И добавится еще один уровень для группировок и фильтраций.
