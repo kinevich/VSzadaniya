@@ -12,49 +12,6 @@ namespace LibraryNetwork
              List<District> districts, City city, List<Book> books, List<Genre> genres, List<Edition> editions,
              List<BookCopy> booksCopies, List<BookCopyLibrary> booksCopiesLibraries, List<Visit> visits) = GetData();
 
-            var query = from visit in visits
-                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
-                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
-                        group visit by library into g
-                        select new
-                        {
-                            LibraryName = g.Key.Name,
-                            Genres = from visit in g
-                                     join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
-                                     join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
-                                     join book in books on bookCopy.BookId equals book.Id
-                                     join genre in genres on book.GenreId equals genre.Id
-                                     group visit by genre into g1
-                                     select new
-                                     {
-                                         GenreName = g1.Key.Name,
-                                         TopTwoByReadTime = (from visit in g1
-                                                             join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
-                                                             join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
-                                                             join book in books on bookCopy.BookId equals book.Id
-                                                             group visit by book into g2
-                                                             select new
-                                                             {
-                                                                 BookTitle = g2.Key.Title,
-                                                                 ReadTime = (from visit in g2
-                                                                             select visit.HowMuchRead.Ticks).Sum()
-                                                             }).OrderByDescending(rt => rt.ReadTime).Take(2)
-                                     }
-                        };
-
-            foreach (var item in query)
-            {
-                Console.WriteLine(item.LibraryName);
-
-                foreach (var genre in item.Genres)
-                {
-                    Console.WriteLine(" " + genre.GenreName);
-
-                    foreach (var book in genre.TopTwoByReadTime)
-                        Console.WriteLine("  " + book.BookTitle);
-                }
-            }
-
             //ListLibraryNames(libraries);
             //ListGroupedLibrariesByDistricts(libraries, districts);
             //ListDistrictsDontHaveLibraries(libraries, districts);
