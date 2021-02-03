@@ -33,6 +33,11 @@ namespace LibraryNetwork
             WhenGetBook = whenGetBook;
             HowMuchRead = DateTime.Now.Subtract(WhenGetBook);
         }
+
+        public bool DidReturnTheBook()
+        {
+            return !(WhenReturnBook == DateTime.MinValue);
+        }
     }
 }
 

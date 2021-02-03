@@ -12,17 +12,6 @@ namespace LibraryNetwork
              List<District> districts, City city, List<Book> books, List<Genre> genres, List<Edition> editions,
              List<BookCopy> booksCopies, List<BookCopyLibrary> booksCopiesLibraries, List<Visit> visits) = GetData();
 
-            var query = from visit in visits
-                        join visitorLibrary in visitorsLibraries on visit.VisitorLibraryId equals visitorLibrary.Id
-                        join visitor in visitors on visitorLibrary.VisitorId equals visitor.Id
-                        join library in libraries on visitorLibrary.LibraryId equals library.Id
-                        where visit.HowMuchRead > library.Limit
-                        group visitor by visitor into g
-                        select g.Key.Name;
-
-            foreach (var visitorName in query)
-                Console.WriteLine(visitorName);
-
             //ListLibraryNames(libraries);
             //ListGroupedLibrariesByDistricts(libraries, districts);
             //ListDistrictsDontHaveLibraries(libraries, districts);
@@ -40,21 +29,23 @@ namespace LibraryNetwork
             //ListTopTwoBooksByGenres(visits, booksCopiesLibraries, booksCopies, books, genres);
             //TopTwoBooksByGenresByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
 
-            //ShowTheMostReadBookByMonths(visits, booksCopiesLibraries, booksCopies, books);
-            //ListMostReadBooksByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, libraries);
-            //ShowTheMostReadGenreByMonths(visits, booksCopiesLibraries, booksCopies, books, genres);
-            //ListTheMostReadGenresByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
-            //ListTopTwoBooksByGenresByMonths(visits, booksCopiesLibraries, booksCopies, books, genres);
-            //TopTwoBooksByGenresByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
+            ShowTheMostReadBookByMonths(visits, booksCopiesLibraries, booksCopies, books);
+            ListMostReadBooksByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, libraries);
+            ShowTheMostReadGenreByMonths(visits, booksCopiesLibraries, booksCopies, books, genres);
+            ListTheMostReadGenresByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
+            ListTopTwoBooksByGenresByMonths(visits, booksCopiesLibraries, booksCopies, books, genres);
+            TopTwoBooksByGenresByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
 
-            //ShowTheMostReadBookByYears(visits, booksCopiesLibraries, booksCopies, books);
-            //ListMostReadBooksByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, libraries);
-            //ShowTheMostReadGenreByYears(visits, booksCopiesLibraries, booksCopies, books, genres);
-            //ListTheMostReadGenresByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
-            //ListTopTwoBooksByGenresByYears(visits, booksCopiesLibraries, booksCopies, books, genres);
-            //TopTwoBooksByGenresByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
+            ShowTheMostReadBookByYears(visits, booksCopiesLibraries, booksCopies, books);
+            ListMostReadBooksByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, libraries);
+            ShowTheMostReadGenreByYears(visits, booksCopiesLibraries, booksCopies, books, genres);
+            ListTheMostReadGenresByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
+            ListTopTwoBooksByGenresByYears(visits, booksCopiesLibraries, booksCopies, books, genres);
+            TopTwoBooksByGenresByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
 
-            ListVisitorsWhoHaveExceededReadingTime()
+            ListVisitorsWhoHaveExceededReadingTime(visits, visitorsLibraries, visitors, libraries);
+            ListBooksByLibrariesAllCopiesTaken(visits, libraries, booksCopies, booksCopiesLibraries, books); // с этим проблема
+
         }
 
         private static void ListLibraryNames(List<Library> libraries)
@@ -944,7 +935,35 @@ namespace LibraryNetwork
             Console.WriteLine();
         }
 
+        private static void ListBooksByLibrariesAllCopiesTaken(List<Visit> visits, List<Library> libraries, List<BookCopy> booksCopies,
+                                                               List<BookCopyLibrary> booksCopiesLibraries, List<Book> books)
+        {
+            var query = from visit in visits
+                        join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join library in libraries on bookCopyLibrary.LibraryId equals library.Id
+                        where !visit.DidReturnTheBook()
+                        group bookCopyLibrary by library into g
+                        select new
+                        {
+                            LibraryName = g.Key.Name,
+                            Books = from bookCopyLibrary in g
+                                    join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                                    join book in books on bookCopy.BookId equals book.Id
+                                    group bookCopy by book into g1
+                                    where g1.Count() == booksCopies.Select(b => b.BookId == g1.Key.Id).Count()
+                                    select g1.Key.Title
+                        };
 
+            foreach (var item in query)
+            {
+                Console.WriteLine(item.LibraryName);
+
+                foreach (var bookTitle in item.Books)
+                {
+                    Console.WriteLine(bookTitle);
+                }
+            }
+        }
 
         private static (List<VisitorLibrary> visitorsLibraries, List<Visitor> visitors,
                         List<Library> libraries, List<District> districts, City city,
@@ -1334,13 +1353,13 @@ namespace LibraryNetwork
                 new Visit(KadeTravis_DaydreamLibrary.Id, DaydreamLibrary_BlueLightning_First1.Id, new DateTime(2012, 8, 10), new DateTime(2012, 8, 18)),
                 new Visit(KadeTravis_DaydreamLibrary.Id, DaydreamLibrary_TheHobbit_First1.Id, new DateTime(2012, 9, 10), new DateTime(2012, 9, 12)),
                 new Visit(VerityMorton_DaydreamLibrary.Id, DaydreamLibrary_TheHobbit_First1.Id, new DateTime(2012, 10, 10), new DateTime(2012, 10, 19)),
-                new Visit(ClaireMackie_ObeliskLibrary .Id, ObeliskLibrary_TheCase_First2.Id, new DateTime(2021, 1, 1)),
+                new Visit(ClaireMackie_ObeliskLibrary.Id, ObeliskLibrary_TheCase_First2.Id, new DateTime(2021, 1, 1)),
                 new Visit(KhalidHarding_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First1.Id, new DateTime(2015, 3, 8), new DateTime(2015, 3, 15)),
                 new Visit(BeaudenNielsen_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First1.Id, new DateTime(2015, 4, 8), new DateTime(2015, 4, 15)),
                 new Visit(KellanConroy_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First2.Id, new DateTime(2015, 5, 15), new DateTime(2015, 5, 15)),
                 new Visit(ClaireMackie_ObeliskLibrary.Id, ObeliskLibrary_TheLostWeekend_First2.Id, new DateTime(2015, 6, 15), new DateTime(2015, 6, 15)),
-                new Visit(HaleyBarnard_AlgorithmLibrary .Id, AlgorithmLibrary_Darkside_First1.Id, new DateTime(2016, 1, 4), new DateTime(2016, 1, 12)),
-                new Visit(RehaanYork_AlgorithmLibrary .Id, AlgorithmLibrary_FoodChemistry_First1.Id, new DateTime(2016, 2, 4), new DateTime(2016, 2, 12)),
+                new Visit(HaleyBarnard_AlgorithmLibrary.Id, AlgorithmLibrary_Darkside_First1.Id, new DateTime(2016, 1, 4), new DateTime(2016, 1, 12)),
+                new Visit(RehaanYork_AlgorithmLibrary.Id, AlgorithmLibrary_FoodChemistry_First1.Id, new DateTime(2016, 2, 4), new DateTime(2016, 2, 12)),
                 new Visit(HaleyBarnard_AlgorithmLibrary.Id, AlgorithmLibrary_FoodChemistry_Second1.Id, new DateTime(2016, 4, 4), new DateTime(2016, 4, 12)),
                 new Visit(HaleyBarnard_AlgorithmLibrary.Id, AlgorithmLibrary_FoodChemistry_Second2.Id, new DateTime(2016, 4, 5), new DateTime(2016, 4, 20)),
                 new Visit(RehaanYork_AlgorithmLibrary.Id, AlgorithmLibrary_Indigo_First2.Id, new DateTime(2011, 6, 4), new DateTime(2011, 6, 15)),
@@ -1352,7 +1371,7 @@ namespace LibraryNetwork
                 new Visit(MattFitzgerald_BeverlyLibrary.Id, BeverlyLibrary_TheHobbit_First2.Id, new DateTime(2011, 6, 17), new DateTime(2011, 6, 25)),
                 new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_TheZone_First2.Id, new DateTime(2016, 6, 17), new DateTime(2016, 6, 25)),
                 new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_TheZone_First2.Id, new DateTime(2017, 6, 17), new DateTime(2017, 6, 25)),
-                new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_TheSword_First1.Id, new DateTime(2018, 6, 17), new DateTime(2018, 6, 25)),
+                new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_TheSword_First1.Id, new DateTime(2018, 6, 17)),
                 new Visit(HasnainKearney_AeosLibrary.Id, AeosLibrary_LordOfScoundrels_First1.Id, new DateTime(2019, 6, 17), new DateTime(2019, 6, 25)),
                 new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_LordOfScoundrels_First1.Id, new DateTime(2019, 6, 26), new DateTime(2019, 7, 27)),
                 new Visit(KellanConroy_AeosLibrary.Id, AeosLibrary_TheLostWeekend_First3.Id, new DateTime(2019, 6, 1), new DateTime(2019, 6, 5))
@@ -1394,6 +1413,3 @@ namespace LibraryNetwork
 //  (к примеру, для редкой периодики -50% недели от стандарта, для старой классики +100%)
 //· Вывести книги по библиотекам, все экземпляры которых сейчас на руках у посетителей
 //· Вывести топ 10 самых долгочитаемых книг по каждому жанру (по каждой библиотеке и по всем библиотекам)
-
-//Придумай еще как минимум 5 запросов с выводом какой-либо статистики. А лучше больше. Модель довольно богатая, можно хорошо на ней попрактиковаться.
-//Если хочешь еще усложнить – создай города. И добавится еще один уровень для группировок и фильтраций.
