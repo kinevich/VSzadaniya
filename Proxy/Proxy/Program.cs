@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace Proxy
@@ -10,10 +11,32 @@ namespace Proxy
         static void Main(string[] args)
         {
             var weatherCalculator = new WeatherCalculator();
-            var proxy = new FileLoggerWeatherCalculator(weatherCalculator);
-            var temperaturePredictor = new TemperaturePredictor(proxy);
-            Console.WriteLine(temperaturePredictor.CalcTemperature());
+            var proxy1 = new FileLoggerWeatherCalculator(weatherCalculator);
+            var proxy2 = new ConcoleLoggerWeatherCalculator(weatherCalculator);
+            var proxy3 = new FileLoggerWeatherCalculator(proxy2);
 
+            string[] lines = File.ReadAllLines(@"E:\config.txt");
+
+            if (lines.Contains("file") || lines.Contains("console"))
+            {
+                if (lines.Contains("file") && lines.Contains("console"))
+                {
+                    Console.WriteLine(CalcTemperature(proxy3));
+                }
+                else
+                    Console.WriteLine(lines.Contains("file") ? CalcTemperature(proxy1) : CalcTemperature(proxy2));
+            }
+            else
+            {
+                Console.WriteLine(@"The strings ""console"" or ""file"" were not found.");
+            }
+
+        }
+
+        private static double CalcTemperature(IWeatherCalculator weatherCalculator)
+        {
+            var predictor = new TemperaturePredictor(weatherCalculator);
+            return predictor.CalcTemperature();
         }
     }
 
@@ -115,7 +138,7 @@ namespace Proxy
 
             stopwatch.Stop();
             using (StreamWriter file =
-                   new StreamWriter(@"E:\config.txt", true))
+                   new StreamWriter(@"E:\someFile.txt", true))
             {
                 file.WriteLine($"{prefix}: {stopwatch.ElapsedMilliseconds} (elapsed milliseconds)");
             }
