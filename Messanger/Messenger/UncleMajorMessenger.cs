@@ -8,7 +8,7 @@ namespace Messenger
 {
     class UncleMajorMessenger : IMessenger
     {
-        List<string> bannedWords = new List<string> {"ФСБ", "ГРУ", "КГБ", "МВД"};
+        List<string> _bannedWords = new List<string> {"ФСБ", "ГРУ", "КГБ", "МВД"};
             
         public string Name { get; set; }
 
@@ -23,7 +23,7 @@ namespace Messenger
         {
             _to.OnMessage(sender, message);
 
-            if (bannedWords.Any(s => message.Contains(s)))
+            if (_bannedWords.Any(s => message.Contains(s)))
             {
                 Console.WriteLine("За вами уже выехали.");
             }
