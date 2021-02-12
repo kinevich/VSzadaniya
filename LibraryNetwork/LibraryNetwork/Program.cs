@@ -29,24 +29,24 @@ namespace LibraryNetwork
             //ListTopTwoBooksByGenres(visits, booksCopiesLibraries, booksCopies, books, genres);
             //TopTwoBooksByGenresByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
 
-            ShowTheMostReadBookByMonths(visits, booksCopiesLibraries, booksCopies, books);
-            ListMostReadBooksByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, libraries);
-            ShowTheMostReadGenreByMonths(visits, booksCopiesLibraries, booksCopies, books, genres);
-            ListTheMostReadGenresByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
-            ListTopTwoBooksByGenresByMonths(visits, booksCopiesLibraries, booksCopies, books, genres);
-            TopTwoBooksByGenresByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
+            //ShowTheMostReadBookByMonths(visits, booksCopiesLibraries, booksCopies, books);
+            //ListMostReadBooksByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, libraries);
+            //ShowTheMostReadGenreByMonths(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //ListTheMostReadGenresByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
+            //ListTopTwoBooksByGenresByMonths(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //TopTwoBooksByGenresByLibrariesByMonths(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
 
-            ShowTheMostReadBookByYears(visits, booksCopiesLibraries, booksCopies, books);
-            ListMostReadBooksByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, libraries);
-            ShowTheMostReadGenreByYears(visits, booksCopiesLibraries, booksCopies, books, genres);
-            ListTheMostReadGenresByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
-            ListTopTwoBooksByGenresByYears(visits, booksCopiesLibraries, booksCopies, books, genres);
-            TopTwoBooksByGenresByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
+            //ShowTheMostReadBookByYears(visits, booksCopiesLibraries, booksCopies, books);
+            //ListMostReadBooksByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, libraries);
+            //ShowTheMostReadGenreByYears(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //ListTheMostReadGenresByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, genres, libraries);
+            //ListTopTwoBooksByGenresByYears(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //TopTwoBooksByGenresByLibrariesByYears(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
 
-            ListVisitorsWhoHaveExceededReadingTime(visits, visitorsLibraries, visitors, libraries);
-            ListBooksByLibrariesAllCopiesTaken(visits, libraries, booksCopies, booksCopiesLibraries, books); // с этим проблема
-            ListTopTwoBooksByReadTimeByGenres(visits, booksCopiesLibraries, booksCopies, books, genres);
-            ListTopTwoBooksByReadTimeByGenresByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
+            //ListVisitorsWhoHaveExceededReadingTime(visits, visitorsLibraries, visitors, libraries);
+            ListBooksByLibrariesCopiesNotReturned(visits, libraries, booksCopies, booksCopiesLibraries, books); // с этим проблема
+            //ListTopTwoBooksByReadTimeByGenres(visits, booksCopiesLibraries, booksCopies, books, genres);
+            //ListTopTwoBooksByReadTimeByGenresByLibraries(visits, booksCopiesLibraries, booksCopies, books, libraries, genres);
         }
 
         private static void ListLibraryNames(List<Library> libraries)
@@ -936,22 +936,21 @@ namespace LibraryNetwork
             Console.WriteLine();
         }
 
-        private static void ListBooksByLibrariesAllCopiesTaken(List<Visit> visits, List<Library> libraries, List<BookCopy> booksCopies,
-                                                               List<BookCopyLibrary> booksCopiesLibraries, List<Book> books)
+        private static void ListBooksByLibrariesCopiesNotReturned(List<Visit> visits, List<Library> libraries, List<BookCopy> booksCopies,
+                                                                  List<BookCopyLibrary> booksCopiesLibraries, List<Book> books)
         {
             var query = from visit in visits
                         join bookCopyLibrary in booksCopiesLibraries on visit.BookCopyLibraryId equals bookCopyLibrary.Id
+                        join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
+                        join book in books on bookCopy.BookId equals book.Id
                         join library in libraries on bookCopyLibrary.LibraryId equals library.Id
                         where !visit.DidReturnTheBook()
-                        group bookCopyLibrary by library into g
+                        group book by library into g
                         select new
                         {
                             LibraryName = g.Key.Name,
-                            Books = from bookCopyLibrary in g
-                                    join bookCopy in booksCopies on bookCopyLibrary.BookCopyId equals bookCopy.Id
-                                    join book in books on bookCopy.BookId equals book.Id
-                                    group bookCopy by book into g1
-                                    where g1.Count() == booksCopies.Select(b => b.BookId == g1.Key.Id).Count()
+                            Books = from book in g
+                                    group book by book into g1
                                     select g1.Key.Title
                         };
 
@@ -961,7 +960,7 @@ namespace LibraryNetwork
 
                 foreach (var bookTitle in item.Books)
                 {
-                    Console.WriteLine(bookTitle);
+                    Console.WriteLine(" " + bookTitle);
                 }
             }
         }
