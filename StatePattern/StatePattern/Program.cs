@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace StatePattern
 {
@@ -6,7 +8,8 @@ namespace StatePattern
     {
         static void Main(string[] args)
         {
-            Console.WriteLine();
+            var phone = new Phone();
+            phone.Call();
         }
     }
 
@@ -29,118 +32,79 @@ namespace StatePattern
 
         public void Call()
         {
-            if (State == PhoneState.Normal)
-            {
-                State = PhoneState.Connection;
-
-                int choice;
-                do
-                {
-                    Console.WriteLine("1)Pick up\n2)Hang up");
-                    int.TryParse(Console.ReadLine(), out choice);
-                }
-                while (choice != 1 && choice != 2);
-
-                switch (choice)
-                {
-                    case 1:
-                        PickUp();
-                        break;
-                    case 2:
-                        HangUp();
-                        break;
-                }
-            }
-
-            if (State == PhoneState.Connected)
-            {
-                State = PhoneState.Connection;
-
-                int choice;
-                do
-                {
-                    Console.WriteLine("1)Hang up\n2)Stand by on");
-                    int.TryParse(Console.ReadLine(), out choice);
-                }
-                while (choice != 1 && choice != 2 && choice != 3);
-
-                switch (choice)
-                {
-                    case 1:
-                        PickUp();
-                        break;
-                    case 2:
-                        HangUp();
-                        break;
-                    case 3:
-                        StandByOn();
-                        break;
-                }
-            }
+            ShowValidActionsByCondition(PhoneState.Normal, PhoneState.Connection, new List<Action> { PickUp, HangUp });
+            ShowValidActionsByCondition(PhoneState.Connected, PhoneState.Connection, new List<Action> { StandByOn, HangUp });
         }
 
         public void PickUp()
         {
-            if (State == PhoneState.Normal)
-            {
-                State = PhoneState.Connection;
-
-                int choice;
-                do
-                {
-                    Console.WriteLine("1)Pick up\n2)Hang up");
-                    int.TryParse(Console.ReadLine(), out choice);
-                }
-                while (choice != 1 && choice != 2);
-
-                switch (choice)
-                {
-                    case 1:
-                        PickUp();
-                        break;
-                    case 2:
-                        HangUp();
-                        break;
-                }
-            }
-
-            if (State == PhoneState.Connected)
-            {
-                State = PhoneState.Connected;
-
-                int choice;
-                do
-                {
-                    Console.WriteLine("1)Stand by on\n2)Hang up");
-                    int.TryParse(Console.ReadLine(), out choice);
-                }
-                while (choice != 1 && choice != 2);
-
-                switch (choice)
-                {
-                    case 1:
-                        PickUp();
-                        break;
-                    case 2:
-                        HangUp();
-                        break;
-                }
-            }
+            ShowValidActionsByCondition(PhoneState.Connection, PhoneState.Connected, new List<Action> { HangUp, Call });
         }
 
         public void HangUp()
         {
-
+            ShowValidActionsByCondition(PhoneState.Connection, PhoneState.Normal, new List<Action> { Call });
+            ShowValidActionsByCondition(PhoneState.Connected, PhoneState.Normal, new List<Action> { Call });
+            ShowValidActionsByCondition(PhoneState.InStandBy, PhoneState.Connection, new List<Action> { HangUp });
         }
 
         public void StandByOn()
         {
-
+            ShowValidActionsByCondition(PhoneState.Connection, PhoneState.InStandBy, new List<Action> { HangUp, StandByOff });
         }
 
         public void StandByOff()
         {
+            ShowValidActionsByCondition(PhoneState.InStandBy, PhoneState.InStandBy, new List<Action> { HangUp, StandByOff });
+        }
 
+        private void ShowValidActionsByCondition(PhoneState conditionalPhoneState, PhoneState phoneStateToSet, 
+                                                 List<Action> list)
+        {
+            if (State == conditionalPhoneState)
+            {
+                State = phoneStateToSet;
+
+                foreach (var action in list)
+                {
+                    Console.WriteLine($"{list.IndexOf(action) + 1}){StringSplitter(action.Method.Name)}");
+                }
+
+                int choice;
+                do
+                {
+                    Console.WriteLine("Enter number:");
+                    int.TryParse(Console.ReadLine(), out choice);
+                }
+                while (!list.Any(i => list.IndexOf(i) == choice - 1));
+
+                list[choice - 1]();
+            }
+        }
+
+        private static string StringSplitter(string stringtosplit)
+        {
+            string words = string.Empty;
+            if (!string.IsNullOrEmpty(stringtosplit))
+            {
+                foreach (char ch in stringtosplit)
+                {
+                    if (char.IsLower(ch))
+                    {
+                        words += ch.ToString();
+                    }
+                    else
+                    {
+                        if (stringtosplit.IndexOf(ch) == 0)
+                            words += ch;
+                        else
+                            words += " " + ch.ToString().ToLower();
+                    }
+                }
+                return words;
+            }
+            else
+                return string.Empty;
         }
     }
 }
