@@ -3,20 +3,20 @@ using System.Collections.Generic;
 
 namespace StatePattern
 {
-    class ConnectedPhoneState : ShowHelper, IPhoneState
+    class ConnectedPhoneState : IPhoneState
     {
         public void Call(Phone phone)
         {
             phone.State = new ConnectionPhoneState();
 
-            ShowValidActions(new List<Action> { phone.HangUp, phone.StandByOn });
+            ShowHelper.ShowValidPhoneActions(new List<Action> { phone.HangUp, phone.StandByOn });
         }
 
         public void HangUp(Phone phone)
         {
             phone.State = new NormalPhoneState();
 
-            ShowValidActions(new List<Action> { phone.Call });
+            ShowHelper.ShowValidPhoneActions(new List<Action> { phone.Call });
         }
 
         public void PickUp(Phone phone)

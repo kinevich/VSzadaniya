@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StatePattern
 {
-    class InStandByPhoneState : ShowHelper, IPhoneState
+    class InStandByPhoneState : IPhoneState
     {
         public void Call(Phone phone)
         {
@@ -14,7 +14,7 @@ namespace StatePattern
         {
             phone.State = new ConnectedPhoneState();
 
-            ShowValidActions(new List<Action> { phone.HangUp });
+            ShowHelper.ShowValidPhoneActions(new List<Action> { phone.HangUp });
         }
 
         public void PickUp(Phone phone)
@@ -26,7 +26,7 @@ namespace StatePattern
         {
             phone.State = new InStandByPhoneState();
 
-            ShowValidActions(new List<Action> { phone.StandByOff, phone.HangUp });
+            ShowHelper.ShowValidPhoneActions(new List<Action> { phone.StandByOff, phone.HangUp });
         }
 
         public void StandByOn(Phone phone)

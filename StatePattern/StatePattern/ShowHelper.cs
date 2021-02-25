@@ -6,7 +6,7 @@ namespace StatePattern
 {
     class ShowHelper
     {
-        public void ShowValidActions(List<Action> list)
+        public static void ShowValidPhoneActions(List<Action> list)
         {
             foreach (var action in list)
             {
@@ -26,7 +26,7 @@ namespace StatePattern
             list[choice - 1]();
         }
 
-        public string StringSplitter(string stringtosplit)
+        public static string StringSplitter(string stringtosplit)
         {
             string words = string.Empty;
             if (!string.IsNullOrEmpty(stringtosplit))
