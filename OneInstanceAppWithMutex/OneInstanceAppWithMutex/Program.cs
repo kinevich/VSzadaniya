@@ -12,9 +12,7 @@ namespace OneInstanceAppWithMutex
             new Mutex(true, "Mutex", out createdNew);
 
             if (!createdNew)
-            {
-                Console.WriteLine("App is already running! Exiting the application.");
-                Console.ReadKey();
+            {                
                 return;
             }
 
