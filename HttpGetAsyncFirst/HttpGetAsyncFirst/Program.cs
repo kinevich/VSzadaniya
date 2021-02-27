@@ -18,31 +18,21 @@ namespace HttpGetAsyncFirst
                 @"http://lite.cnn.com/en/article/h_9cf7e8d30baf454d2c5885eb2729f507"
             };
 
-            var tasks = new List<Task<string>>();
+            var tasks = new List<Task<HttpResponseMessage>>();
 
             foreach (var uri in uris)
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    return await client.GetStringAsync(uri);
+                    return await client.GetAsync(uri);
                 }));
             }
 
             var result = await Task.WhenAll(tasks);
 
-            var directoryPath = @"E:\DirectoryHttpGetAsyncFirst";
-            if (!Directory.Exists(directoryPath))
-                Directory.CreateDirectory(directoryPath);
-
-            foreach (var page in result)
+            foreach (var message in result)
             {
-                var fileName = Path.GetRandomFileName();
-                var filePath = Path.Combine(directoryPath, fileName);
-
-                File.WriteAllText(filePath, page);
-
-                var fileInfo = new FileInfo(filePath);
-                Console.WriteLine(fileInfo.Length + " bytes");
+                Console.WriteLine(message.Content.Headers.ContentLength);
             }
         }
     }
