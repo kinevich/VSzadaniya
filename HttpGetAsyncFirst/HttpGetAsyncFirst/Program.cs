@@ -28,18 +28,18 @@ namespace HttpGetAsyncFirst
                 }));
             }
 
-            var continuation = Task.WhenAll(tasks);
+            var result = await Task.WhenAll(tasks);
 
             var directoryPath = @"E:\DirectoryHttpGetAsyncFirst";
             if (!Directory.Exists(directoryPath))
                 Directory.CreateDirectory(directoryPath);
 
-            foreach (var result in continuation.Result)
+            foreach (var page in result)
             {
                 var fileName = Path.GetRandomFileName();
                 var filePath = Path.Combine(directoryPath, fileName);
 
-                File.WriteAllText(filePath, result);
+                File.WriteAllText(filePath, page);
 
                 var fileInfo = new FileInfo(filePath);
                 Console.WriteLine(fileInfo.Length + " bytes");
