@@ -64,7 +64,7 @@ namespace InAndOut.Controllers
         //POST Delete
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult DeletePost(int? id, bool notUsed)
+        public IActionResult DeletePost(int? id)
         {
             var obj = _db.Expenses.Find(id);
 
