@@ -36,6 +36,7 @@ namespace InAndOut.Controllers
         {
             if (ModelState.IsValid)
             {
+                obj.ExpenseTypeId = 1;
                 _db.Expenses.Add(obj);
                 _db.SaveChanges();
                 return RedirectToAction("Index");
@@ -63,7 +64,7 @@ namespace InAndOut.Controllers
         //POST Delete
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Delete(int? id, bool notUsed)
+        public IActionResult DeletePost(int? id, bool notUsed)
         {
             var obj = _db.Expenses.Find(id);
 
