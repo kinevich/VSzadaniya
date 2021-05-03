@@ -1,0 +1,1 @@
+﻿dotnet-fm migrate -p SqlServer -c "Server = NATALI-PK2; Database = LibraryManagement; Trusted_Connection = True" -a "E:\VSprojects\LibraryManagement\LibraryManagement\bin\Debug\net5.0\LibraryManagement.dll"

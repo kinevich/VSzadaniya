@@ -1,4 +1,5 @@
-﻿using LibraryManagement.Models;
+﻿using LibraryManagement.Data.Configurations;
+using LibraryManagement.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -14,13 +15,20 @@ namespace LibraryManagement.Data
 
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfiguration(new AuthorConfiguration());
+            modelBuilder.ApplyConfiguration(new BookConfiguration());
+            modelBuilder.ApplyConfiguration(new DistrictConfiguration());
+            modelBuilder.ApplyConfiguration(new EditionConfiguration());
+            modelBuilder.ApplyConfiguration(new GenreConfiguration());
+            modelBuilder.ApplyConfiguration(new LibraryConfiguration());
+            modelBuilder.ApplyConfiguration(new ReleaseFormConfiguration());            
+        }
+
         public DbSet<Author> Author { get; set; }
 
         public DbSet<Book> Book { get; set; }
-
-        public DbSet<BookCopy> BookCopy { get; set; }
-
-        public DbSet<BookCopyLibrary> BookCopyLibrary { get; set; }
 
         public DbSet<District> District { get; set; }
 

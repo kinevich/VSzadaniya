@@ -10,21 +10,14 @@ namespace LibraryManagement.Models
 {
     public class Edition
     {
-        [Key]
         public int Id { get; set; }
 
-        [DisplayName("Edition")]
-        [Required]
-        public string EditionNumber { get; set; }
+        public int EditionNumber { get; set; }
 
-        [DisplayName("Amount of pages")]
-        [Required]
         public int PagesAmount { get; set; }
 
-        [DisplayName("Book")]
         public int BookId { get; set; }
 
-        [ForeignKey("BookId")]
-        public virtual Book Book { get; set; }
+        public  Book Book { get; set; }
     }
 }

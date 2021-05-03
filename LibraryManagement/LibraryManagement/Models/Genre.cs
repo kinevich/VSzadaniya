@@ -9,11 +9,8 @@ namespace LibraryManagement.Models
 {
     public class Genre
     {
-        [Key]
         public int Id { get; set; }
 
-        [DisplayName("Genre")]
-        [Required]
         public string Name { get; set; }
     }
 }

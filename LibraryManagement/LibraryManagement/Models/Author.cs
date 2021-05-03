@@ -9,11 +9,9 @@ namespace LibraryManagement.Models
 {
     public class Author
     {
-        [Key]
+
         public int Id { get; set; }
 
-        [DisplayName("Author")]
-        [Required]
         public string Name { get; set; }
     }
 }

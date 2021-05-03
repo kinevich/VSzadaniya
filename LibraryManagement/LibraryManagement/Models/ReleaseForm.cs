@@ -9,11 +9,8 @@ namespace LibraryManagement.Models
 {
     public class ReleaseForm
     {
-        [Key]
         public int Id { get; set; }
 
-        [DisplayName("Release form")]
-        [Required]
         public string Name { get; set; }
     }
 }

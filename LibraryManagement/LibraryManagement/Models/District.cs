@@ -9,11 +9,8 @@ namespace LibraryManagement.Models
 {
     public class District
     {
-        [Key]
         public int Id { get; set; }
 
-        [DisplayName("District")]
-        [Required]
         public string Name { get; set; }
     }
 }
