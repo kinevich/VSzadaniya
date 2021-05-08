@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibraryManagement", "LibraryManagement\LibraryManagement.csproj", "{211013D7-66A1-4A27-A622-EF8B8C755851}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibraryManagement", "LibraryManagement\LibraryManagement.csproj", "{211013D7-66A1-4A27-A622-EF8B8C755851}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migrations", "Migrations\Migrations.csproj", "{B048B6E6-B918-44B0-A283-A5D0AA4DB2AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{211013D7-66A1-4A27-A622-EF8B8C755851}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{211013D7-66A1-4A27-A622-EF8B8C755851}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{211013D7-66A1-4A27-A622-EF8B8C755851}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B048B6E6-B918-44B0-A283-A5D0AA4DB2AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B048B6E6-B918-44B0-A283-A5D0AA4DB2AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B048B6E6-B918-44B0-A283-A5D0AA4DB2AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B048B6E6-B918-44B0-A283-A5D0AA4DB2AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -10,22 +10,23 @@ using LibraryManagement.Models;
 
 namespace LibraryManagement.Controllers
 {
-    public class AuthorController : Controller
+    public class BookController : Controller
     {
         private readonly LibraryManagementContext _db;
 
-        public AuthorController(LibraryManagementContext db)
+        public BookController(LibraryManagementContext db)
         {
             _db = db;
         }
 
-        // GET: Author
+        // GET: Book
         public async Task<IActionResult> Index()
         {
-            return View(await _db.Author.ToListAsync());
+            var libraryManagementContext = _db.Book.Include(b => b.Author).Include(b => b.Genre);
+            return View(await libraryManagementContext.ToListAsync());
         }
 
-        // GET: Author/Details/5
+        // GET: Book/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -33,40 +34,46 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author
+            var book = await _db.Book
+                .Include(b => b.Author)
+                .Include(b => b.Genre)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (author == null)
+            if (book == null)
             {
                 return NotFound();
             }
 
-            return View(author);
+            return View(book);
         }
 
-        // GET: Author/Create
+        // GET: Book/Create
         public IActionResult Create()
         {
+            ViewData["AuthorId"] = new SelectList(_db.Author, "Id", "Name");
+            ViewData["GenreId"] = new SelectList(_db.Genre, "Id", "Name");
             return View();
         }
 
-        // POST: Author/Create
+        // POST: Book/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Author author)
+        public async Task<IActionResult> Create([Bind("Id,Title,GenreId,AuthorId")] Book book)
         {
             if (ModelState.IsValid)
             {
-                author.Id = Guid.NewGuid();
-                _db.Add(author);
+                book.Id = Guid.NewGuid();
+                _db.Add(book);
                 await _db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(author);
+            ViewData["AuthorId"] = new SelectList(_db.Author, "Id", "Name", book.AuthorId);
+            ViewData["GenreId"] = new SelectList(_db.Genre, "Id", "Name", book.GenreId);
+            return View(book);
         }
 
-        // GET: Author/Edit/5
+        // GET: Book/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -74,22 +81,24 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author.FindAsync(id);
-            if (author == null)
+            var book = await _db.Book.FindAsync(id);
+            if (book == null)
             {
                 return NotFound();
             }
-            return View(author);
+            ViewData["AuthorId"] = new SelectList(_db.Author, "Id", "Name", book.AuthorId);
+            ViewData["GenreId"] = new SelectList(_db.Genre, "Id", "Name", book.GenreId);
+            return View(book);
         }
 
-        // POST: Author/Edit/5
+        // POST: Book/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name")] Author author)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Title,GenreId,AuthorId")] Book book)
         {
-            if (id != author.Id)
+            if (id != book.Id)
             {
                 return NotFound();
             }
@@ -98,12 +107,12 @@ namespace LibraryManagement.Controllers
             {
                 try
                 {
-                    _db.Update(author);
+                    _db.Update(book);
                     await _db.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AuthorExists(author.Id))
+                    if (!BookExists(book.Id))
                     {
                         return NotFound();
                     }
@@ -114,10 +123,12 @@ namespace LibraryManagement.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(author);
+            ViewData["AuthorId"] = new SelectList(_db.Author, "Id", "Name", book.AuthorId);
+            ViewData["GenreId"] = new SelectList(_db.Genre, "Id", "Name", book.GenreId);
+            return View(book);
         }
 
-        // GET: Author/Delete/5
+        // GET: Book/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -125,30 +136,32 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author
+            var book = await _db.Book
+                .Include(b => b.Author)
+                .Include(b => b.Genre)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (author == null)
+            if (book == null)
             {
                 return NotFound();
             }
 
-            return View(author);
+            return View(book);
         }
 
-        // POST: Author/Delete/5
+        // POST: Book/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var author = await _db.Author.FindAsync(id);
-            _db.Author.Remove(author);
+            var book = await _db.Book.FindAsync(id);
+            _db.Book.Remove(book);
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool AuthorExists(Guid id)
+        private bool BookExists(Guid id)
         {
-            return _db.Author.Any(e => e.Id == id);
+            return _db.Book.Any(e => e.Id == id);
         }
     }
 }

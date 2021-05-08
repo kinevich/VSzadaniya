@@ -1,0 +1,57 @@
+﻿@model IEnumerable<LibraryManagement.Models.ViewModels.DistrictLibrariesVM>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                District
+            </th>
+            <th>
+                Name
+            </th>
+            <th>
+                LimitDays
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+           <tr>
+               <td>
+                   @item.District.Name
+               </td>
+               <td></td><td></td><td></td>
+            </tr>
+               @foreach (var library in item.Libraries)
+               {
+                   <tr>
+                       <td>
+
+                       </td>
+                       <td>
+                           @library.Name
+                       </td>
+                       <td>
+                           @library.LimitDays
+                       </td>
+                       <td>
+                           <a asp-action="Edit" asp-route-id="@library.Id">Edit</a> |
+                           <a asp-action="Details" asp-route-id="@library.Id">Details</a> |
+                           <a asp-action="Delete" asp-route-id="@library.Id">Delete</a>
+                       </td>
+                   </tr>
+               }
+        }   
+     </tbody>
+</table>

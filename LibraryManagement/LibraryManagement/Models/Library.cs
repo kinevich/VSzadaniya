@@ -10,13 +10,14 @@ namespace LibraryManagement.Models
 {
     public class Library
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public string Name { get; set; }
 
         public int LimitDays { get; set; }
 
-        public int DistrictId { get; set; }
+        [DisplayName("District")]
+        public Guid DistrictId { get; set; }
 
         public District District { get; set; }
     }

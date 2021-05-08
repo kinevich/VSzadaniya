@@ -9,7 +9,7 @@ namespace LibraryManagement.Models
 {
     public class ReleaseForm
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public string Name { get; set; }
     }

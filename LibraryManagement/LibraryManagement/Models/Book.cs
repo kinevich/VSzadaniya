@@ -10,15 +10,17 @@ namespace LibraryManagement.Models
 {
     public class Book
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public string Title { get; set; }
 
-        public int GenreId { get; set; }
+        [DisplayName("Genre")]
+        public Guid GenreId { get; set; }
 
         public Genre Genre { get; set; }
 
-        public int AuthorId { get; set; }
+        [DisplayName("Author")]
+        public Guid AuthorId { get; set; }
 
         public Author Author { get; set; }
     }

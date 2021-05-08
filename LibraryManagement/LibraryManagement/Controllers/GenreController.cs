@@ -10,22 +10,22 @@ using LibraryManagement.Models;
 
 namespace LibraryManagement.Controllers
 {
-    public class AuthorController : Controller
+    public class GenreController : Controller
     {
         private readonly LibraryManagementContext _db;
 
-        public AuthorController(LibraryManagementContext db)
+        public GenreController(LibraryManagementContext db)
         {
             _db = db;
         }
 
-        // GET: Author
+        // GET: Genre
         public async Task<IActionResult> Index()
         {
-            return View(await _db.Author.ToListAsync());
+            return View(await _db.Genre.ToListAsync());
         }
 
-        // GET: Author/Details/5
+        // GET: Genre/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -33,40 +33,40 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author
+            var genre = await _db.Genre
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (author == null)
+            if (genre == null)
             {
                 return NotFound();
             }
 
-            return View(author);
+            return View(genre);
         }
 
-        // GET: Author/Create
+        // GET: Genre/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Author/Create
+        // POST: Genre/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Author author)
+        public async Task<IActionResult> Create([Bind("Id,Name")] Genre genre)
         {
             if (ModelState.IsValid)
             {
-                author.Id = Guid.NewGuid();
-                _db.Add(author);
+                genre.Id = Guid.NewGuid();
+                _db.Add(genre);
                 await _db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(author);
+            return View(genre);
         }
 
-        // GET: Author/Edit/5
+        // GET: Genre/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -74,22 +74,22 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author.FindAsync(id);
-            if (author == null)
+            var genre = await _db.Genre.FindAsync(id);
+            if (genre == null)
             {
                 return NotFound();
             }
-            return View(author);
+            return View(genre);
         }
 
-        // POST: Author/Edit/5
+        // POST: Genre/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name")] Author author)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name")] Genre genre)
         {
-            if (id != author.Id)
+            if (id != genre.Id)
             {
                 return NotFound();
             }
@@ -98,12 +98,12 @@ namespace LibraryManagement.Controllers
             {
                 try
                 {
-                    _db.Update(author);
+                    _db.Update(genre);
                     await _db.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AuthorExists(author.Id))
+                    if (!GenreExists(genre.Id))
                     {
                         return NotFound();
                     }
@@ -114,10 +114,10 @@ namespace LibraryManagement.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(author);
+            return View(genre);
         }
 
-        // GET: Author/Delete/5
+        // GET: Genre/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -125,30 +125,30 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author
+            var genre = await _db.Genre
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (author == null)
+            if (genre == null)
             {
                 return NotFound();
             }
 
-            return View(author);
+            return View(genre);
         }
 
-        // POST: Author/Delete/5
+        // POST: Genre/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var author = await _db.Author.FindAsync(id);
-            _db.Author.Remove(author);
+            var genre = await _db.Genre.FindAsync(id);
+            _db.Genre.Remove(genre);
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool AuthorExists(Guid id)
+        private bool GenreExists(Guid id)
         {
-            return _db.Author.Any(e => e.Id == id);
+            return _db.Genre.Any(e => e.Id == id);
         }
     }
 }

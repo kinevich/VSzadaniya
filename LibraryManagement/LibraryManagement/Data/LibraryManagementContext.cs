@@ -39,5 +39,7 @@ namespace LibraryManagement.Data
         public DbSet<Library> Library { get; set; }
 
         public DbSet<ReleaseForm> ReleaseForm { get; set; }
+
+        public DbSet<BookLibrary> BookLibrary { get; set; }
     }
 }

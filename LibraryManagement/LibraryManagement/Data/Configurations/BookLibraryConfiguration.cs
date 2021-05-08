@@ -8,12 +8,11 @@ using System.Threading.Tasks;
 
 namespace LibraryManagement.Data.Configurations
 {
-    public class DistrictConfiguration : IEntityTypeConfiguration<District>
+    public class BookLibraryConfiguration : IEntityTypeConfiguration<BookLibrary>
     {
-        public void Configure(EntityTypeBuilder<District> builder)
+        public void Configure(EntityTypeBuilder<BookLibrary> builder)
         {
-            builder.Property(i => i.Name)
-                .IsRequired();    
+
         }
     }
 }

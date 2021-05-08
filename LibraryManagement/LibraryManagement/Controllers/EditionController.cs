@@ -10,22 +10,23 @@ using LibraryManagement.Models;
 
 namespace LibraryManagement.Controllers
 {
-    public class AuthorController : Controller
+    public class EditionController : Controller
     {
         private readonly LibraryManagementContext _db;
 
-        public AuthorController(LibraryManagementContext db)
+        public EditionController(LibraryManagementContext db)
         {
             _db = db;
         }
 
-        // GET: Author
+        // GET: Edition
         public async Task<IActionResult> Index()
         {
-            return View(await _db.Author.ToListAsync());
+            var libraryManagementContext = _db.Edition.Include(e => e.Book);
+            return View(await libraryManagementContext.ToListAsync());
         }
 
-        // GET: Author/Details/5
+        // GET: Edition/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -33,40 +34,43 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author
+            var edition = await _db.Edition
+                .Include(e => e.Book)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (author == null)
+            if (edition == null)
             {
                 return NotFound();
             }
 
-            return View(author);
+            return View(edition);
         }
 
-        // GET: Author/Create
+        // GET: Edition/Create
         public IActionResult Create()
         {
+            ViewData["BookId"] = new SelectList(_db.Book, "Id", "Title");
             return View();
         }
 
-        // POST: Author/Create
+        // POST: Edition/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Author author)
+        public async Task<IActionResult> Create([Bind("Id,EditionNumber,PagesAmount,BookId")] Edition edition)
         {
             if (ModelState.IsValid)
             {
-                author.Id = Guid.NewGuid();
-                _db.Add(author);
+                edition.Id = Guid.NewGuid();
+                _db.Add(edition);
                 await _db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(author);
+            ViewData["BookId"] = new SelectList(_db.Book, "Id", "Title", edition.BookId);
+            return View(edition);
         }
 
-        // GET: Author/Edit/5
+        // GET: Edition/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -74,22 +78,23 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author.FindAsync(id);
-            if (author == null)
+            var edition = await _db.Edition.FindAsync(id);
+            if (edition == null)
             {
                 return NotFound();
             }
-            return View(author);
+            ViewData["BookId"] = new SelectList(_db.Book, "Id", "Title", edition.BookId);
+            return View(edition);
         }
 
-        // POST: Author/Edit/5
+        // POST: Edition/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name")] Author author)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,EditionNumber,PagesAmount,BookId")] Edition edition)
         {
-            if (id != author.Id)
+            if (id != edition.Id)
             {
                 return NotFound();
             }
@@ -98,12 +103,12 @@ namespace LibraryManagement.Controllers
             {
                 try
                 {
-                    _db.Update(author);
+                    _db.Update(edition);
                     await _db.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AuthorExists(author.Id))
+                    if (!EditionExists(edition.Id))
                     {
                         return NotFound();
                     }
@@ -114,10 +119,11 @@ namespace LibraryManagement.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(author);
+            ViewData["BookId"] = new SelectList(_db.Book, "Id", "Title", edition.BookId);
+            return View(edition);
         }
 
-        // GET: Author/Delete/5
+        // GET: Edition/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -125,30 +131,31 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author
+            var edition = await _db.Edition
+                .Include(e => e.Book)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (author == null)
+            if (edition == null)
             {
                 return NotFound();
             }
 
-            return View(author);
+            return View(edition);
         }
 
-        // POST: Author/Delete/5
+        // POST: Edition/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var author = await _db.Author.FindAsync(id);
-            _db.Author.Remove(author);
+            var edition = await _db.Edition.FindAsync(id);
+            _db.Edition.Remove(edition);
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool AuthorExists(Guid id)
+        private bool EditionExists(Guid id)
         {
-            return _db.Author.Any(e => e.Id == id);
+            return _db.Edition.Any(e => e.Id == id);
         }
     }
 }

@@ -10,22 +10,22 @@ using LibraryManagement.Models;
 
 namespace LibraryManagement.Controllers
 {
-    public class AuthorController : Controller
+    public class DistrictController : Controller
     {
         private readonly LibraryManagementContext _db;
 
-        public AuthorController(LibraryManagementContext db)
+        public DistrictController(LibraryManagementContext db)
         {
             _db = db;
         }
 
-        // GET: Author
+        // GET: District
         public async Task<IActionResult> Index()
         {
-            return View(await _db.Author.ToListAsync());
+            return View(await _db.District.ToListAsync());
         }
 
-        // GET: Author/Details/5
+        // GET: District/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -33,40 +33,40 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author
+            var district = await _db.District
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (author == null)
+            if (district == null)
             {
                 return NotFound();
             }
 
-            return View(author);
+            return View(district);
         }
 
-        // GET: Author/Create
+        // GET: District/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Author/Create
+        // POST: District/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Author author)
+        public async Task<IActionResult> Create([Bind("Id,Name")] District district)
         {
             if (ModelState.IsValid)
             {
-                author.Id = Guid.NewGuid();
-                _db.Add(author);
+                district.Id = Guid.NewGuid();
+                _db.Add(district);
                 await _db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(author);
+            return View(district);
         }
 
-        // GET: Author/Edit/5
+        // GET: District/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -74,22 +74,22 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author.FindAsync(id);
-            if (author == null)
+            var district = await _db.District.FindAsync(id);
+            if (district == null)
             {
                 return NotFound();
             }
-            return View(author);
+            return View(district);
         }
 
-        // POST: Author/Edit/5
+        // POST: District/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name")] Author author)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name")] District district)
         {
-            if (id != author.Id)
+            if (id != district.Id)
             {
                 return NotFound();
             }
@@ -98,12 +98,12 @@ namespace LibraryManagement.Controllers
             {
                 try
                 {
-                    _db.Update(author);
+                    _db.Update(district);
                     await _db.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AuthorExists(author.Id))
+                    if (!DistrictExists(district.Id))
                     {
                         return NotFound();
                     }
@@ -114,10 +114,10 @@ namespace LibraryManagement.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(author);
+            return View(district);
         }
 
-        // GET: Author/Delete/5
+        // GET: District/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -125,30 +125,30 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var author = await _db.Author
+            var district = await _db.District
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (author == null)
+            if (district == null)
             {
                 return NotFound();
             }
 
-            return View(author);
+            return View(district);
         }
 
-        // POST: Author/Delete/5
+        // POST: District/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var author = await _db.Author.FindAsync(id);
-            _db.Author.Remove(author);
+            var district = await _db.District.FindAsync(id);
+            _db.District.Remove(district);
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool AuthorExists(Guid id)
+        private bool DistrictExists(Guid id)
         {
-            return _db.Author.Any(e => e.Id == id);
+            return _db.District.Any(e => e.Id == id);
         }
     }
 }

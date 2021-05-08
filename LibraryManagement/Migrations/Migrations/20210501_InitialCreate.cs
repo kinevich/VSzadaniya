@@ -12,20 +12,22 @@ namespace LibraryManagement.Migrations
         public override void Up()
         {
             Create.Table("District")
-                .WithColumn("Id").AsInt32().PrimaryKey().Identity()
+                .WithColumn("Id").AsGuid().PrimaryKey()
                 .WithColumn("Name").AsString().NotNullable();
 
             Create.Table("Author")
-                .WithColumn("Id").AsInt32().PrimaryKey().Identity()
+                .WithColumn("Id").AsGuid().PrimaryKey()
                 .WithColumn("Name").AsString().NotNullable();
 
             Create.Table("Genre")
-                .WithColumn("Id").AsInt32().PrimaryKey().Identity()
+                .WithColumn("Id").AsGuid().PrimaryKey()
                 .WithColumn("Name").AsString().NotNullable();
 
             Create.Table("Book")
-                .WithColumn("Id").AsInt32().PrimaryKey().Identity()
-                .WithColumn("Title").AsString().NotNullable();
+                .WithColumn("Id").AsGuid().PrimaryKey()
+                .WithColumn("Title").AsString().NotNullable()
+                .WithColumn("GenreId").AsGuid()
+                .WithColumn("AuthorId").AsGuid();
 
             Create.ForeignKey()
                 .FromTable("Book").ForeignColumn("GenreId")
@@ -36,22 +38,24 @@ namespace LibraryManagement.Migrations
                 .ToTable("Author").PrimaryColumn("Id");
 
             Create.Table("Edition")
-                .WithColumn("Id").AsInt32().PrimaryKey().Identity()
+                .WithColumn("Id").AsGuid().PrimaryKey()
                 .WithColumn("EditionNumber").AsInt32().NotNullable()
-                .WithColumn("PagesAmount").AsInt32().NotNullable();
+                .WithColumn("PagesAmount").AsInt32().NotNullable()
+                .WithColumn("BookId").AsGuid();
 
             Create.ForeignKey()
                 .FromTable("Edition").ForeignColumn("BookId")
                 .ToTable("Book").PrimaryColumn("Id");
 
             Create.Table("ReleaseForm")
-                .WithColumn("Id").AsInt32().PrimaryKey().Identity()
+                .WithColumn("Id").AsGuid().PrimaryKey()
                 .WithColumn("Name").AsString().NotNullable();
 
             Create.Table("Library")
-                .WithColumn("Id").AsInt32().PrimaryKey().Identity()
+                .WithColumn("Id").AsGuid().PrimaryKey()
                 .WithColumn("Name").AsString().NotNullable()
-                .WithColumn("LimitDays").AsInt32().NotNullable();
+                .WithColumn("LimitDays").AsInt32().NotNullable()
+                .WithColumn("DistrictId").AsGuid(); 
 
             Create.ForeignKey()
                 .FromTable("Library").ForeignColumn("DistrictId")
