@@ -8,7 +8,7 @@ using FluentMigrator;
 namespace Migrations.Migrations
 {
     [Migration(202105080756)]
-    class AddBookLibrary : Migration
+    public class AddBookLibrary : Migration
     {
         public override void Up()
         {

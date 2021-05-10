@@ -1,0 +1,26 @@
+﻿@model IEnumerable<LibraryManagement.Models.ViewModels.LibraryAmountDistrictVM>
+
+@{
+    ViewData["Title"] = "AuthorAmountGenre";
+}
+
+<h1>LibraryAmountDistrict</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>District</th>
+            <th>Library Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.District.Name</td>
+                <td>@item.LibraryAmount</td>
+            </tr>
+        }
+    </tbody>
+</table>
+

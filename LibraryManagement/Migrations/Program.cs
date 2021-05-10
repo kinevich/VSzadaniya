@@ -14,8 +14,6 @@ namespace Migrations
             {
                 UpdateDatabase(scope.ServiceProvider);
             }
-
-            Console.ReadLine();
         }
 
         private static IServiceProvider CreateServices()

@@ -7,38 +7,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using LibraryManagement.Data;
 using LibraryManagement.Models;
-using LibraryManagement.Models.ViewModels;
 
 namespace LibraryManagement.Controllers
 {
-    public class LibraryController : Controller
+    public class BookLibraryController : Controller
     {
         private readonly LibraryManagementContext _db;
 
-        public LibraryController(LibraryManagementContext db)
+        public BookLibraryController(LibraryManagementContext db)
         {
             _db = db;
         }
 
-        // GET: Library
+        // GET: BookLibrary
         public async Task<IActionResult> Index()
         {
-            var districts = _db.District.AsEnumerable();
-            var libraries = _db.Library.AsEnumerable();
-
-            var librariesByDistricts = from district in districts
-                                       join library in libraries on district.Id equals library.DistrictId
-                                       group library by district into g
-                                       select new DistrictLibrariesVM { District = g.Key, Libraries = g };
-
-
-            return View(librariesByDistricts.ToList());
-
-            //var libraryManagementContext = _db.Library.Include(l => l.District);
-            //return View(await libraryManagementContext.ToListAsync());
+            var libraryManagementContext = _db.BookLibrary.Include(b => b.Book).Include(b => b.Library);
+            return View(await libraryManagementContext.ToListAsync());
         }
 
-        // GET: Library/Details/5
+        // GET: BookLibrary/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -46,43 +34,46 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var library = await _db.Library
-                .Include(l => l.District)
+            var bookLibrary = await _db.BookLibrary
+                .Include(b => b.Book)
+                .Include(b => b.Library)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (library == null)
+            if (bookLibrary == null)
             {
                 return NotFound();
             }
 
-            return View(library);
+            return View(bookLibrary);
         }
 
-        // GET: Library/Create
+        // GET: BookLibrary/Create
         public IActionResult Create()
         {
-            ViewData["DistrictId"] = new SelectList(_db.District, "Id", "Name");
+            ViewData["BookId"] = new SelectList(_db.Book, "Id", "Title");
+            ViewData["LibraryId"] = new SelectList(_db.Library, "Id", "Name");
             return View();
         }
 
-        // POST: Library/Create
+        // POST: BookLibrary/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,LimitDays,DistrictId")] Library library)
+        public async Task<IActionResult> Create([Bind("Id,LibraryId,BookId")] BookLibrary bookLibrary)
         {
             if (ModelState.IsValid)
             {
-                library.Id = Guid.NewGuid();
-                _db.Add(library);
+                bookLibrary.Id = Guid.NewGuid();
+                _db.Add(bookLibrary);
                 await _db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["DistrictId"] = new SelectList(_db.District, "Id", "Name", library.DistrictId);
-            return View(library);
+            ViewData["BookId"] = new SelectList(_db.Book, "Id", "Title", bookLibrary.BookId);
+            ViewData["LibraryId"] = new SelectList(_db.Library, "Id", "Name", bookLibrary.LibraryId);
+            return View(bookLibrary);
         }
 
-        // GET: Library/Edit/5
+        // GET: BookLibrary/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -90,23 +81,24 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var library = await _db.Library.FindAsync(id);
-            if (library == null)
+            var bookLibrary = await _db.BookLibrary.FindAsync(id);
+            if (bookLibrary == null)
             {
                 return NotFound();
             }
-            ViewData["DistrictId"] = new SelectList(_db.District, "Id", "Name", library.DistrictId);
-            return View(library);
+            ViewData["BookId"] = new SelectList(_db.Book, "Id", "Title", bookLibrary.BookId);
+            ViewData["LibraryId"] = new SelectList(_db.Library, "Id", "Name", bookLibrary.LibraryId);
+            return View(bookLibrary);
         }
 
-        // POST: Library/Edit/5
+        // POST: BookLibrary/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name,LimitDays,DistrictId")] Library library)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,LibraryId,BookId")] BookLibrary bookLibrary)
         {
-            if (id != library.Id)
+            if (id != bookLibrary.Id)
             {
                 return NotFound();
             }
@@ -115,12 +107,12 @@ namespace LibraryManagement.Controllers
             {
                 try
                 {
-                    _db.Update(library);
+                    _db.Update(bookLibrary);
                     await _db.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!LibraryExists(library.Id))
+                    if (!BookLibraryExists(bookLibrary.Id))
                     {
                         return NotFound();
                     }
@@ -131,11 +123,12 @@ namespace LibraryManagement.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["DistrictId"] = new SelectList(_db.District, "Id", "Name", library.DistrictId);
-            return View(library);
+            ViewData["BookId"] = new SelectList(_db.Book, "Id", "Title", bookLibrary.BookId);
+            ViewData["LibraryId"] = new SelectList(_db.Library, "Id", "Name", bookLibrary.LibraryId);
+            return View(bookLibrary);
         }
 
-        // GET: Library/Delete/5
+        // GET: BookLibrary/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -143,31 +136,32 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var library = await _db.Library
-                .Include(l => l.District)
+            var bookLibrary = await _db.BookLibrary
+                .Include(b => b.Book)
+                .Include(b => b.Library)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (library == null)
+            if (bookLibrary == null)
             {
                 return NotFound();
             }
 
-            return View(library);
+            return View(bookLibrary);
         }
 
-        // POST: Library/Delete/5
+        // POST: BookLibrary/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var library = await _db.Library.FindAsync(id);
-            _db.Library.Remove(library);
+            var bookLibrary = await _db.BookLibrary.FindAsync(id);
+            _db.BookLibrary.Remove(bookLibrary);
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool LibraryExists(Guid id)
+        private bool BookLibraryExists(Guid id)
         {
-            return _db.Library.Any(e => e.Id == id);
+            return _db.BookLibrary.Any(e => e.Id == id);
         }
     }
 }
