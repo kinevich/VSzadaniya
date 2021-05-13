@@ -1,4 +1,5 @@
 using LibraryManagement.Data;
+using LibraryManagement.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -29,6 +30,7 @@ namespace LibraryManagement
             options.UseSqlServer(Configuration.GetConnectionString("LibraryManagementContext")));
 
             services.AddControllersWithViews();
+            services.AddScoped<IStatisticsService, StatisticsService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

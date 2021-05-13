@@ -1,5 +1,6 @@
 ﻿using LibraryManagement.Data;
 using LibraryManagement.Models.ViewModels;
+using LibraryManagement.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -12,58 +13,36 @@ namespace LibraryManagement.Controllers
     {
         private readonly LibraryManagementContext _db;
 
-        public StatisticController(LibraryManagementContext db)
+        private readonly IStatisticsService _statisticsService;
+
+        public StatisticController(LibraryManagementContext db, IStatisticsService statisticsService)
         {
             _db = db;
+            _statisticsService = statisticsService;
         }
 
         public IActionResult Index()
         {
             return View();
         }
-
+        
         public IActionResult LibraryAmountDistrict()
         {
-            var libraryAmountDistrict = from district in _db.District.AsEnumerable()
-                                        join library in _db.Library.AsEnumerable() on district.Id equals library.DistrictId
-                                        group library by district into g
-                                        select new LibraryAmountDistrictVM { District = g.Key, LibraryAmount = g.Count() };
+            var libraryAmountDistrict = _statisticsService.GetLibraryAmountDistrict();
 
             return View(libraryAmountDistrict);
         }
 
         public IActionResult AuthorAmountGenre()
         {
-            var authorAmountGenre = from author in _db.Author.AsEnumerable()
-                                    join book in _db.Book.AsEnumerable() on author.Id equals book.AuthorId
-                                    join genre in _db.Genre.AsEnumerable() on book.GenreId equals genre.Id
-                                    group author by genre into g
-                                    select new AuthorAmountGenreVM 
-                                    {
-                                        Genre = g.Key,
-                                        AuthorAmount = (from author in g
-                                                       group author by author into g1
-                                                       select g1.Key).Count()
-                                    };
+            var authorAmountGenre = _statisticsService.GetAuthorAmountGenre();
 
             return View(authorAmountGenre);
         }
 
         public IActionResult TopAuthorLibrary()
         {
-            var authorAmountGenre = from author in _db.Author.AsEnumerable()
-                                    join book in _db.Book.AsEnumerable() on author.Id equals book.AuthorId
-                                    join bookLibrary in _db.BookLibrary.AsEnumerable() on book.Id equals bookLibrary.BookId
-                                    join library in _db.Library.AsEnumerable() on bookLibrary.LibraryId equals library.Id
-                                    group author by library into g
-                                    select new TopAuthorLibraryVM
-                                    {
-                                        Library = g.Key,
-                                        TopAuthor = (from author in g
-                                                    group author by author into g1
-                                                    select new 
-                                                    {Author = g1.Key, Count = g1.Count()}).OrderByDescending(i =>i.Count).Select(i => i.Author).FirstOrDefault()
-                                    };
+            var authorAmountGenre = _statisticsService.GetTopAuthorLibrary();
 
             return View(authorAmountGenre);
         }
