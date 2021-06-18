@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Catel.MVVM;
+using ConvolutionWpf.Commands.Helpers;
 
 namespace ConvolutionWpf.Commands
 {
@@ -28,11 +29,10 @@ namespace ConvolutionWpf.Commands
 
         private byte[] DetectEdges(WriteableBitmap image)
         {
-            var pixels = new byte[image.PixelHeight * image.BackBufferStride];
-            image.CopyPixels(pixels, image.BackBufferStride, 0);
+            var filter = ConvolutionHelper.GetEdgeDetectionFilterMatrix(11);
+            var resultPixels = ConvolutionHelper.ConvolutionFilter(image, filter);
 
-            //todo
-            return null;
+            return resultPixels;
         }
 
 
