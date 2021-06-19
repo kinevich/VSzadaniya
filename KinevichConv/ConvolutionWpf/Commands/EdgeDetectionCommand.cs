@@ -29,7 +29,7 @@ namespace ConvolutionWpf.Commands
 
         private byte[] DetectEdges(WriteableBitmap image)
         {
-            var filter = ConvolutionHelper.GetEdgeDetectionFilterMatrix(11);
+            var filter = ConvolutionHelper.GetEdgeDetectionFilterMatrix(3);
             var resultPixels = ConvolutionHelper.ConvolutionFilter(image, filter);
 
             return resultPixels;

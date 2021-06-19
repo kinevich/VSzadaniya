@@ -33,7 +33,7 @@ namespace ConvolutionWpf.Commands.Helpers
                                 int index = (j - filterOffset + filterY) * image.BackBufferStride + 4 * (i - filterOffset + filterX);
                                 sum += pixels[index + c] * filterMatrix[filterY, filterX];
                             }
-                        }
+                        }                        
                         int convIndex = j * image.BackBufferStride + 4 * i;
                         resultPixels[convIndex + c] = (byte)sum;
                     }

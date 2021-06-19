@@ -37,13 +37,13 @@ namespace ConvolutionWpf.Commands
 
         //    var tasks = new[]
         //    {
-        //        Task.Run(() => BlurHelper.),
+        //        Task.Run(() => ConvolutionHelper.),
 
-        //        Task.Run(() => BlurHelper.),
+        //        Task.Run(() => ConvolutionHelper.),
 
-        //        Task.Run(() => BlurHelper.),
+        //        Task.Run(() => ConvolutionHelper.),
 
-        //        Task.Run(() => BlurHelper.).
+        //        Task.Run(() => ConvolutionHelper.).
         //    };
 
         //    await Task.WhenAll(tasks).ConfigureAwait(false);
