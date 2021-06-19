@@ -33,11 +33,13 @@ namespace ConvolutionWpf.Commands
             var pixels = new byte[image.PixelHeight * image.BackBufferStride];
             image.CopyPixels(pixels, image.BackBufferStride, 0);
 
-            var filter = new List<int>(sensetivity);//list with 3 capacity
+            var filter = new List<int>(sensetivity);//list with sensitivity capacity
 
             var resultPixels = new byte[pixels.Length];
 
             var filterOffset = filter.Capacity - 1;
+            int index;
+            int filteredPixel;
 
             for (int i = 0; i < image.Width - filterOffset; i++)
             {
@@ -45,30 +47,17 @@ namespace ConvolutionWpf.Commands
                 {
                     for (int c = 0; c < 3; c++)
                     {
-                        //double sum = 0;
-                        //for (int filterY = 0; filterY < filterWidth; filterY++)
-                        //{
-                        //    for (int filterX = 0; filterX < filterWidth; filterX++)
-                        //    {
-                        //        int index = (j - filterOffset + filterY) * image.BackBufferStride + 4 * (i - filterOffset + filterX);
-                        //        sum += pixels[index + c] * filterMatrix[filterY, filterX];
-                        //    }
-                        //}
-
-                        //int convIndex = j * image.BackBufferStride + 4 * i;
-                        //resultPixels[convIndex + c] = (byte)sum;
-
                         for (int k = 0; k < filter.Capacity; k++) 
                         {
-                            int index = j * image.BackBufferStride + 4 * (i + k);
+                            index = j * image.BackBufferStride + 4 * (i + k);
                             filter.Add(pixels[index + c]);
                         }
 
                         filter.Sort();
-                        var filteredPixel = filter[filter.Capacity / 2];
+                        filteredPixel = filter[filter.Capacity / 2];
 
-                        int convIndex = j * image.BackBufferStride + 4 * i;
-                        resultPixels[convIndex + c] = (byte)filteredPixel;
+                        index = j * image.BackBufferStride + 4 * i;
+                        resultPixels[index + c] = (byte)filteredPixel;
 
                         filter.Clear();
                     }

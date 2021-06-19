@@ -29,12 +29,30 @@ namespace ConvolutionWpf.Commands
 
         private byte[] DetectEdges(WriteableBitmap image)
         {
-            var filter = ConvolutionHelper.GetEdgeDetectionFilterMatrix(3);
+            var filter = GetEdgeDetectionFilterMatrix(3);
             var resultPixels = ConvolutionHelper.ConvolutionFilter(image, filter);
 
             return resultPixels;
         }
 
+        public static double[,] GetEdgeDetectionFilterMatrix(int length)
+        {
+            var filter = new double[length, length];
+            double filterElementCount = length * length;
+
+            for (int i = 0; i < filter.GetLength(0); i++)
+            {
+                for (int j = 0; j < filter.GetLength(1); j++)
+                {
+                    filter[i, j] = -1 / filterElementCount;
+                }
+            }
+
+            // filter's middle
+            filter[length / 2, length / 2] = (filterElementCount - 1) / filterElementCount;
+
+            return filter;
+        }
 
         protected override void Execute(object parameter, bool ignoreCanExecuteCheck)
         {

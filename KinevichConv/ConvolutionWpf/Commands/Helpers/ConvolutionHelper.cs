@@ -18,6 +18,7 @@ namespace ConvolutionWpf.Commands.Helpers
 
             var filterWidth = filterMatrix.GetLength(1);
             var filterOffset = (filterWidth - 1) / 2;
+            int index;
 
             for (int i = filterOffset; i < image.Width - filterOffset; i++)
             {
@@ -30,53 +31,17 @@ namespace ConvolutionWpf.Commands.Helpers
                         {
                             for (int filterX = 0; filterX < filterWidth; filterX++)
                             {
-                                int index = (j - filterOffset + filterY) * image.BackBufferStride + 4 * (i - filterOffset + filterX);
+                                index = (j + filterY - filterOffset) * image.BackBufferStride + 4 * (i + filterX - filterOffset);
                                 sum += pixels[index + c] * filterMatrix[filterY, filterX];
                             }
-                        }                        
-                        int convIndex = j * image.BackBufferStride + 4 * i;
-                        resultPixels[convIndex + c] = (byte)sum;
+                        }
+                        index = j * image.BackBufferStride + 4 * i;
+                        resultPixels[index + c] = (byte)sum;
                     }
                 }
             }
 
             return resultPixels;
         }
-
-        public static double[,] GetBoxBlurFilterMatrix(int length) 
-        {
-            var filter = new double[length, length];
-
-            for (int i = 0; i < filter.GetLength(0); i++) 
-            {
-                for (int j = 0; j < filter.GetLength(1); j++) 
-                {
-                    filter[i, j] = 1 / (double)(length * length);
-                }
-            }
-
-            return filter;
-        }
-
-        public static double[,] GetEdgeDetectionFilterMatrix(int length)
-        {
-            var filter = new double[length, length];
-            double filterElementCount = length * length;
-
-            for (int i = 0; i < filter.GetLength(0); i++)
-            {
-                for (int j = 0; j < filter.GetLength(1); j++)
-                {
-                    filter[i, j] = -1 / filterElementCount;
-                }
-            }
-
-            // filter's middle
-            filter[length / 2, length / 2] = (filterElementCount - 1) / filterElementCount;
-
-            return filter;
-        }
-
-
     }
 }

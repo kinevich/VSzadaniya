@@ -24,7 +24,7 @@ namespace ConvolutionWpf.Commands
             if (image == null)
                 return;
 
-            var filter = ConvolutionHelper.GetBoxBlurFilterMatrix(9);
+            var filter = GetBoxBlurFilterMatrix(9);
             var resultPixels = ConvolutionHelper.ConvolutionFilter(image, filter);
 
             image.WritePixels(new Int32Rect(0, 0, image.PixelWidth, image.PixelHeight), resultPixels, image.BackBufferStride, 0);
@@ -48,6 +48,21 @@ namespace ConvolutionWpf.Commands
 
         //    await Task.WhenAll(tasks).ConfigureAwait(false);
         //}
+
+        private static double[,] GetBoxBlurFilterMatrix(int length)
+        {
+            var filter = new double[length, length];
+
+            for (int i = 0; i < filter.GetLength(0); i++)
+            {
+                for (int j = 0; j < filter.GetLength(1); j++)
+                {
+                    filter[i, j] = 1 / (double)(length * length);
+                }
+            }
+
+            return filter;
+        }
 
         protected override void Execute(object parameter, bool ignoreCanExecuteCheck)
         {

@@ -31,8 +31,46 @@ namespace ConvolutionWpf.Commands
             var pixels = new byte[image.PixelHeight * image.BackBufferStride];
             image.CopyPixels(pixels, image.BackBufferStride, 0);
 
-            //todo
-            return null;
+            double[,] xKernel = new double[3, 3] { { -1 / 9.0, 0, 1 / 9.0 },
+                                                   { -2 / 9.0, 0, 2 / 9.0 },
+                                                   { -1 / 9.0, 0, 1 / 9.0 } 
+            };
+
+            double[,] yKernel = new double[3, 3] { { -1 / 9.0, -2 / 9.0 , -1 / 9.0 },
+                                                   { 0, 0, 0 },
+                                                   { 1 / 9.0, 2 / 9.0, 1 / 9.0 } 
+            };
+
+            var resultPixels = new byte[pixels.Length];
+
+            var filterWidth = xKernel.GetLength(1);
+            var filterOffset = (filterWidth - 1) / 2;
+            int index;
+
+            for (int i = filterOffset; i < image.Width - filterOffset; i++)
+            {
+                for (int j = filterOffset; j < image.Height - filterOffset; j++)
+                {
+                    for (int c = 0; c < 3; c++)
+                    {
+                        double xColor = 0;
+                        double yColor = 0;
+                        for (int filterY = 0; filterY < filterWidth; filterY++)
+                        {
+                            for (int filterX = 0; filterX < filterWidth; filterX++)
+                            {
+                                index = (j + filterY - filterOffset) * image.BackBufferStride + 4 * (i + filterX - filterOffset);
+                                xColor += pixels[index + c] * xKernel[filterY, filterX];
+                                yColor += pixels[index + c] * yKernel[filterY, filterX];
+                            }
+                        }
+                        index = j * image.BackBufferStride + 4 * i;
+                        resultPixels[index + c] = (byte)Math.Sqrt((xColor * xColor) + (yColor * yColor));
+                    }
+                }
+            }
+
+            return resultPixels;
         }
 
         protected override void Execute(object parameter, bool ignoreCanExecuteCheck)
