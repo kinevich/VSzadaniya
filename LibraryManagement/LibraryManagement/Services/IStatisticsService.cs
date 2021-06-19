@@ -8,10 +8,10 @@ namespace LibraryManagement.Services
 {
     public interface IStatisticsService
     {
-        public IEnumerable<LibraryAmountDistrictVM> GetLibraryAmountDistrict();
+        IEnumerable<LibraryAmountDistrictVM> GetLibraryAmountDistrict();
 
-        public IEnumerable<AuthorAmountGenreVM> GetAuthorAmountGenre();
+        IEnumerable<AuthorAmountGenreVM> GetAuthorAmountGenre();
 
-        public IEnumerable<TopAuthorLibraryVM> GetTopAuthorLibrary();
+        IEnumerable<TopAuthorLibraryVM> GetTopAuthorLibrary();
     }
 }
