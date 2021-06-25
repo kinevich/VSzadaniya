@@ -37,19 +37,19 @@ namespace ConvolutionWpf.Commands
 
             var resultPixels = new byte[pixels.Length];
 
-            var filterOffset = filter.Capacity - 1;
+            var filterOffset = filter.Capacity / 2;
             int index;
             int filteredPixel;
 
-            for (int i = 0; i < image.Width - filterOffset; i++)
+            for (int i = filterOffset; i < image.Width - filterOffset; i++)
             {
-                for (int j = 0; j < image.Height; j++)
+                for (int j = filterOffset; j < image.Height; j++)
                 {
                     for (int c = 0; c < 3; c++)
                     {
                         for (int k = 0; k < filter.Capacity; k++) 
                         {
-                            index = j * image.BackBufferStride + 4 * (i + k);
+                            index = j * image.BackBufferStride + 4 * (i - filterOffset + k);
                             filter.Add(pixels[index + c]);
                         }
 

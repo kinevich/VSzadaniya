@@ -17,7 +17,7 @@ namespace ConvolutionWpf.Commands.Helpers
             var resultPixels = new byte[pixels.Length];
 
             var filterWidth = filterMatrix.GetLength(1);
-            var filterOffset = (filterWidth - 1) / 2;
+            var filterOffset = filterWidth / 2;
             int index;
 
             for (int i = filterOffset; i < image.Width - filterOffset; i++)
