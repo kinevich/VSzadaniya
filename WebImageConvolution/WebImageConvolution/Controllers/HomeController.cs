@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,36 +15,35 @@ namespace WebImageConvolution.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
         private readonly IWebHostEnvironment _env;
         private readonly string _dir;
+        private readonly string[] _permittedExtensions = { ".png", ".jpg", "jpeg" };
 
-        public HomeController(ILogger<HomeController> logger, IWebHostEnvironment env)
+        public HomeController(IWebHostEnvironment env)
         {
-            _logger = logger;
             _env = env;
             _dir = _env.ContentRootPath;
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() => View();
 
-        public IActionResult SingleFile(IFormFile file)
+        public IActionResult SingleFile(IFormFile image)
         {
-            using (var fileStream = new FileStream(Path.Combine(_dir, "file.png"), FileMode.Create, FileAccess.Write))
+            var ext = Path.GetExtension(image.FileName);
+
+            if (!_permittedExtensions.Contains(ext)) 
             {
-                file.CopyTo(fileStream);
+                return RedirectToAction("Index");
             }
 
-            return RedirectToAction("Index");
-        }
+            var filePath = Path.Combine(_dir, image.FileName);
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+            {
+                image.CopyTo(fileStream);
+            }
+
+            return RedirectToAction("Index", "Convolution", filePath);
         }
     }
 }

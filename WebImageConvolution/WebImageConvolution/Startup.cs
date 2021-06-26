@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebImageConvolution.Services;
 
 namespace WebImageConvolution
 {
@@ -24,6 +25,7 @@ namespace WebImageConvolution
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+            services.AddScoped<IConvolutionService, ConvolutionService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
