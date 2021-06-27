@@ -8,14 +8,14 @@ namespace WebImageConvolution.Services
 {
     public interface IConvolutionService
     {
-        Bitmap GrayScale(Bitmap originalBitmap);
-        Bitmap Blur(Bitmap originalBitmap);
-        Bitmap Log(Bitmap originalBitmap);
-        Bitmap Contrast(Bitmap originalBitmap);
-        Bitmap Flip(Bitmap originalBitmap);
-        Bitmap Negate(Bitmap originalBitmap);
-        Bitmap SobelEdges(Bitmap originalBitmap);
-        Bitmap ImpulseNoise(Bitmap originalBitmap);
-        Bitmap Edges(Bitmap originalBitmap);
+        void GrayScale();
+        void Blur();
+        void Log();
+        void Contrast();
+        void Flip();
+        void Negate();
+        void SobelEdges();
+        void ImpulseNoise();
+        void Edges();
     }
 }

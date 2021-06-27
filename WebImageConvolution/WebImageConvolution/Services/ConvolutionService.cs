@@ -10,13 +10,92 @@ namespace WebImageConvolution.Services
 {
     public class ConvolutionService : IConvolutionService
     {
-        public Bitmap Blur(Bitmap originalBitmap)
+        public static Bitmap Image { get; set; }
+
+        public void Blur()
+        {
+            var (pixels, resultPixels, stride) = GetDataForConvolution();
+
+            var filterMatrix = GetBoxBlurFilterMatrix(3);
+            var filterWidth = filterMatrix.GetLength(1);
+            var filterOffset = filterWidth / 2;
+
+            int index;
+            for (int i = filterOffset; i < Image.Width - filterOffset; i++)
+            {
+                for (int j = filterOffset; j < Image.Height - filterOffset; j++)
+                {
+                    for (int c = 0; c < 3; c++)
+                    {
+                        double sum = 0;
+                        for (int filterY = 0; filterY < filterWidth; filterY++)
+                        {
+                            for (int filterX = 0; filterX < filterWidth; filterX++)
+                            {
+                                index = (j + filterY - filterOffset) * 
+                                    stride + 4 * (i + filterX - filterOffset);
+
+                                sum += pixels[index + c] * filterMatrix[filterY, filterX];
+                            }
+                        }
+                        index = j * stride + 4 * i;
+                        resultPixels[index + c] = (byte)sum;
+                    }
+                }
+            }
+
+            var resultBitmap = GetResultBitmap(resultPixels);
+
+            Image = resultBitmap;
+        }
+
+        public void GrayScale()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Log()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Contrast()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Flip()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Negate()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SobelEdges()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ImpulseNoise()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Edges()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static (byte[] pixels, byte[] resultPixels, int stride) GetDataForConvolution() 
         {
             BitmapData sourceData =
-                originalBitmap.LockBits(new Rectangle(0, 0,
-                originalBitmap.Width, originalBitmap.Height),
+                Image.LockBits(new Rectangle(0, 0,
+                Image.Width, Image.Height),
                 ImageLockMode.ReadOnly,
-                originalBitmap.PixelFormat);
+                Image.PixelFormat);
 
 
             byte[] pixels = new byte[sourceData.Stride *
@@ -31,45 +110,22 @@ namespace WebImageConvolution.Services
                                        resultPixels.Length);
 
 
-            originalBitmap.UnlockBits(sourceData);
+            Image.UnlockBits(sourceData);
 
-            var filterMatrix = GetBoxBlurFilterMatrix(3);
+            return (pixels, resultPixels, sourceData.Stride);
+        }
 
-
-            var filterWidth = filterMatrix.GetLength(1);
-            var filterOffset = filterWidth / 2;
-            int index;
-
-            for (int i = filterOffset; i < originalBitmap.Width - filterOffset; i++)
-            {
-                for (int j = filterOffset; j < originalBitmap.Height - filterOffset; j++)
-                {
-                    for (int c = 0; c < 3; c++)
-                    {
-                        double sum = 0;
-                        for (int filterY = 0; filterY < filterWidth; filterY++)
-                        {
-                            for (int filterX = 0; filterX < filterWidth; filterX++)
-                            {
-                                index = (j + filterY - filterOffset) * sourceData.Stride + 4 * (i + filterX - filterOffset);
-                                sum += pixels[index + c] * filterMatrix[filterY, filterX];
-                            }
-                        }
-                        index = j * sourceData.Stride + 4 * i;
-                        resultPixels[index + c] = (byte)sum;
-                    }
-                }
-            }
-
-            Bitmap resultBitmap = new Bitmap(originalBitmap.Width,
-                                      originalBitmap.Height);
+        private static Bitmap GetResultBitmap(byte[] resultPixels) 
+        {
+            Bitmap resultBitmap = new Bitmap(Image.Width,
+                                      Image.Height);
 
 
             BitmapData resultData =
                        resultBitmap.LockBits(new Rectangle(0, 0,
                        resultBitmap.Width, resultBitmap.Height),
                        ImageLockMode.WriteOnly,
-                       PixelFormat.Format32bppArgb);
+                       Image.PixelFormat);
 
 
             Marshal.Copy(resultPixels, 0, resultData.Scan0,
@@ -80,46 +136,6 @@ namespace WebImageConvolution.Services
 
 
             return resultBitmap;
-        }
-
-        public Bitmap Contrast(Bitmap originalBitmap)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Bitmap Edges(Bitmap originalBitmap)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Bitmap Flip(Bitmap originalBitmap)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Bitmap GrayScale(Bitmap originalBitmap)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Bitmap ImpulseNoise(Bitmap originalBitmap)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Bitmap Log(Bitmap originalBitmap)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Bitmap Negate(Bitmap originalBitmap)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Bitmap SobelEdges(Bitmap originalBitmap)
-        {
-            throw new NotImplementedException();
         }
 
         private static double[,] GetBoxBlurFilterMatrix(int length)
@@ -135,6 +151,6 @@ namespace WebImageConvolution.Services
             }
 
             return filter;
-        }
+        }     
     }
 }

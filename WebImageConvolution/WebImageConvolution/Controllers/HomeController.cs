@@ -10,20 +10,15 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WebImageConvolution.Models;
+using WebImageConvolution.Services;
 
 namespace WebImageConvolution.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IWebHostEnvironment _env;
-        private readonly string _dir;
-        private readonly string[] _permittedExtensions = { ".png", ".jpg", "jpeg" };
+        private readonly string[] _permittedExtensions = { ".png", ".jpg", ".jpeg" };
 
-        public HomeController(IWebHostEnvironment env)
-        {
-            _env = env;
-            _dir = _env.ContentRootPath;
-        }
+        public HomeController() { }
 
         public IActionResult Index() => View();
 
@@ -36,14 +31,13 @@ namespace WebImageConvolution.Controllers
                 return RedirectToAction("Index");
             }
 
-            var filePath = Path.Combine(_dir, image.FileName);
+            var stream = new MemoryStream();
+            image.CopyTo(stream);
+            var bitmap = new Bitmap(stream);
 
-            using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-            {
-                image.CopyTo(fileStream);
-            }
+            ConvolutionService.Image = bitmap;
 
-            return RedirectToAction("Index", "Convolution", filePath);
+            return RedirectToAction("Index", "Convolution");
         }
     }
 }

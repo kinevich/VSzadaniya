@@ -22,38 +22,15 @@ namespace WebImageConvolution.Controllers
             _convolutionService = convolutionService;
         }
 
-        public IActionResult Index(string path)
+        public IActionResult Index()
         {
-            var imageModel = new ImageModel
-            {
-                Name = Path.GetFileName(path),
-                Path = path
-            };
-            return View(imageModel);
-        }
-         
-        public IActionResult Blur(string path) 
-        {
-            var bitmap = new Bitmap(path);
-            bitmap = _convolutionService.Blur(bitmap);
-            SaveImage(bitmap, path);
-
-            return RedirectToAction("Index", path);
+            return View();
         }
 
-        public IActionResult Download(string path)
+        public IActionResult Blur() 
         {
-            return PhysicalFile(path, MediaTypeNames.Application.Octet, Path.GetFileName(path));
-        }
-
-        private void SaveImage(Bitmap bitmap, string path) 
-        {
-            if (System.IO.File.Exists(path))
-            {
-                System.IO.File.Delete(path);
-            }
-
-            bitmap.Save(path);
+            _convolutionService.Blur();
+            return RedirectToAction("Index");
         }
     }
 }
