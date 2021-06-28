@@ -36,6 +36,8 @@ namespace WebImageConvolution.Controllers
             var bitmap = new Bitmap(stream);
 
             ConvolutionService.Image = bitmap;
+            ImageDataService.Name = image.FileName;
+            ImageDataService.OriginalImage = bitmap;
 
             return RedirectToAction("Index", "Convolution");
         }

@@ -32,5 +32,67 @@ namespace WebImageConvolution.Controllers
             _convolutionService.Blur();
             return RedirectToAction("Index");
         }
+
+        public IActionResult Contrast()
+        {
+            _convolutionService.Contrast();
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult GrayScale()
+        {
+            _convolutionService.GrayScale();
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Edges()
+        {
+            _convolutionService.Edges();
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Flip()
+        {
+            _convolutionService.Flip();
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult ImpulseNoise()
+        {
+            _convolutionService.ImpulseNoise();
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Log()
+        {
+            _convolutionService.Log();
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Negate()
+        {
+            _convolutionService.Negate();
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult SobelEdges()
+        {
+            _convolutionService.SobelEdges();
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Reset()
+        {
+            ConvolutionService.Image = ImageDataService.OriginalImage;
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Download()
+        {
+            var converter = new ImageConverter();
+            var data = (byte[])converter.ConvertTo(ConvolutionService.Image, typeof(byte[]));
+
+            return File(data, MediaTypeNames.Application.Octet, ImageDataService.Name);
+        }
     }
 }
