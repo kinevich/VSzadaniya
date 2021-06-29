@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace WebImageConvolution.Services
 {
-    public class ImageDataService : IImageDataService
+    public class ImageDataService 
     {
-        public static string Name { get ; set ; }
+        public static string Name { get; set; }
         public static Bitmap OriginalImage { get; set; }
     }
 }

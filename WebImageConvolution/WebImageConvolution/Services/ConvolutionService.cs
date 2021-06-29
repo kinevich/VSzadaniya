@@ -14,37 +14,9 @@ namespace WebImageConvolution.Services
 
         public void Blur()
         {
-            var (pixels, resultPixels, stride, format) = GetDataForConvolution(Image);
+            var filter = GetBoxBlurFilterMatrix(3);
 
-            var filterMatrix = GetBoxBlurFilterMatrix(9);
-            var filterWidth = filterMatrix.GetLength(1);
-            var filterOffset = filterWidth / 2;
-
-            int index;
-            for (int i = filterOffset; i < Image.Width - filterOffset; i++)
-            {
-                for (int j = filterOffset; j < Image.Height - filterOffset; j++)
-                {
-                    for (int c = 0; c < format; c++)// c - number of colors
-                    {
-                        double sum = 0;
-                        for (int filterY = 0; filterY < filterWidth; filterY++)
-                        {
-                            for (int filterX = 0; filterX < filterWidth; filterX++)
-                            {
-                                index = (j + filterY - filterOffset) * 
-                                    stride + format * (i + filterX - filterOffset);
-
-                                sum += pixels[index + c] * filterMatrix[filterY, filterX];
-                            }
-                        }
-                        index = j * stride + format * i;
-                        resultPixels[index + c] = (byte)sum;
-                    }
-                }
-            }
-
-            var resultBitmap = GetResultBitmap(Image, resultPixels);
+            var resultBitmap = ConvolutionFilter(filter);
 
             Image = resultBitmap;
         }
@@ -306,10 +278,18 @@ namespace WebImageConvolution.Services
 
         public void Edges()
         {
+            var filter = GetEdgeDetectionFilterMatrix(3);
+
+            var resultBitmap = ConvolutionFilter(filter);
+
+            Image = resultBitmap;
+        }
+
+        private static Bitmap ConvolutionFilter(double[,] filter) 
+        {
             var (pixels, resultPixels, stride, format) = GetDataForConvolution(Image);
 
-            var filterMatrix = GetEdgeDetectionFilterMatrix(9);
-            var filterWidth = filterMatrix.GetLength(1);
+            var filterWidth = filter.GetLength(1);
             var filterOffset = filterWidth / 2;
 
             int index;
@@ -317,7 +297,7 @@ namespace WebImageConvolution.Services
             {
                 for (int j = filterOffset; j < Image.Height - filterOffset; j++)
                 {
-                    for (int c = 0; c < format; c++)// c - number of colors
+                    for (int c = 0; c < format; c++)
                     {
                         double sum = 0;
                         for (int filterY = 0; filterY < filterWidth; filterY++)
@@ -327,7 +307,7 @@ namespace WebImageConvolution.Services
                                 index = (j + filterY - filterOffset) *
                                     stride + format * (i + filterX - filterOffset);
 
-                                sum += pixels[index + c] * filterMatrix[filterY, filterX];
+                                sum += pixels[index + c] * filter[filterY, filterX];
                             }
                         }
                         index = j * stride + format * i;
@@ -338,7 +318,7 @@ namespace WebImageConvolution.Services
 
             var resultBitmap = GetResultBitmap(Image, resultPixels);
 
-            Image = resultBitmap;
+            return resultBitmap;
         }
 
         private static double[,] GetBoxBlurFilterMatrix(int length)
