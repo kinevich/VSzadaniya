@@ -26,7 +26,7 @@ namespace WebImageConvolution
         {
             services.AddControllersWithViews();
             services.AddSingleton<IConvolutionService, ConvolutionService>();
-            //services.AddSingleton<ImageDataService>();
+            services.AddSingleton<IImageDataService, ImageDataService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

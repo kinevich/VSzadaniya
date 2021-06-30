@@ -17,13 +17,24 @@ namespace WebImageConvolution.Controllers
     public class HomeController : Controller
     {
         private readonly string[] _permittedExtensions = { ".png", ".jpg", ".jpeg" };
+        private readonly IImageDataService _imageDataService;
+        private readonly IConvolutionService _convolutionService;
 
-        public HomeController() { }
+        public HomeController(IImageDataService imageDataService, IConvolutionService convolutionService) 
+        {
+            _imageDataService = imageDataService;
+            _convolutionService = convolutionService;
+        }
 
         public IActionResult Index() => View();
 
         public IActionResult SingleFile(IFormFile image)
         {
+            if (image == null) 
+            {
+                return RedirectToAction("Index");
+            }
+
             var ext = Path.GetExtension(image.FileName);
 
             if (!_permittedExtensions.Contains(ext)) 
@@ -35,9 +46,9 @@ namespace WebImageConvolution.Controllers
             image.CopyTo(stream);
             var bitmap = new Bitmap(stream);
 
-            ConvolutionService.Image = bitmap;
-            ImageDataService.Name = image.FileName;
-            ImageDataService.OriginalImage = bitmap;
+            _convolutionService.Image = bitmap;
+            _imageDataService.Name = image.FileName;
+            _imageDataService.OriginalImage = bitmap;
 
             return RedirectToAction("Index", "Convolution");
         }

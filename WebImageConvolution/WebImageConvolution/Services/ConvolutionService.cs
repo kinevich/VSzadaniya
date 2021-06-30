@@ -10,13 +10,13 @@ namespace WebImageConvolution.Services
 {
     public class ConvolutionService : IConvolutionService
     {
-        public static Bitmap Image { get; set; }
+        public Bitmap Image { get; set; }
 
         public void Blur()
         {
             var filter = GetBoxBlurFilterMatrix(3);
 
-            var resultBitmap = ConvolutionFilter(filter);
+            var resultBitmap = ConvolutionFilter(Image, filter);
 
             Image = resultBitmap;
         }
@@ -145,8 +145,8 @@ namespace WebImageConvolution.Services
         {
             var imageRes = new Bitmap(2 * Image.Width, Image.Height, Image.PixelFormat);
 
-            var (pixels, resultPixels, stride, format) = GetDataForConvolution(Image);
-            var (resPixels, resResultPixels, resStride, resFormat) = GetDataForConvolution(imageRes);
+            var (pixels, _, stride, format) = GetDataForConvolution(Image);
+            var (_, resResultPixels, resStride, _) = GetDataForConvolution(imageRes);
 
             int halfImResPixWidth = imageRes.Width / 2;
             for (int i = 0; i < imageRes.Height; i++)
@@ -194,7 +194,7 @@ namespace WebImageConvolution.Services
 
         public void SobelEdges()
         {
-            var (pixels, resultPixels, stride, format) = GetDataForConvolution(Image);
+            var (_, resultPixels, _, _) = GetDataForConvolution(Image); 
 
             double[,] xKernel = new double[3, 3] { { -1 / 9.0, 0, 1 / 9.0 },
                                                    { -2 / 9.0, 0, 2 / 9.0 },
@@ -206,31 +206,16 @@ namespace WebImageConvolution.Services
                                                    { 1 / 9.0, 2 / 9.0, 1 / 9.0 }
             };
 
-            var filterWidth = xKernel.GetLength(1);
-            var filterOffset = (filterWidth - 1) / 2;
-            int index;
+            var xImage = ConvolutionFilter(Image, xKernel);
+            var yImage = ConvolutionFilter(Image, yKernel);
+            var (xPixels, _, _, _) = GetDataForConvolution(xImage);
+            var (yPixels, _, _, _) = GetDataForConvolution(yImage);
 
-            for (int i = filterOffset; i < Image.Width - filterOffset; i++)
+            for (int i = 0; i < resultPixels.Length; i++) 
             {
-                for (int j = filterOffset; j < Image.Height - filterOffset; j++)
-                {
-                    for (int c = 0; c < format; c++)
-                    {
-                        double xColor = 0;
-                        double yColor = 0;
-                        for (int filterY = 0; filterY < filterWidth; filterY++)
-                        {
-                            for (int filterX = 0; filterX < filterWidth; filterX++)
-                            {
-                                index = (j + filterY - filterOffset) * stride + format * (i + filterX - filterOffset);
-                                xColor += pixels[index + c] * xKernel[filterY, filterX];
-                                yColor += pixels[index + c] * yKernel[filterY, filterX];
-                            }
-                        }
-                        index = j * stride + format * i;
-                        resultPixels[index + c] = (byte)Math.Sqrt((xColor * xColor) + (yColor * yColor));
-                    }
-                }
+                double xPixel = xPixels[i];
+                double yPixel = yPixels[i];
+                resultPixels[i] = (byte)Math.Sqrt((xPixel * xPixel) + (yPixel * yPixel));
             }
 
             var resultBitmap = GetResultBitmap(Image, resultPixels);
@@ -280,22 +265,22 @@ namespace WebImageConvolution.Services
         {
             var filter = GetEdgeDetectionFilterMatrix(3);
 
-            var resultBitmap = ConvolutionFilter(filter);
+            var resultBitmap = ConvolutionFilter(Image, filter);
 
             Image = resultBitmap;
         }
 
-        private static Bitmap ConvolutionFilter(double[,] filter) 
+        private static Bitmap ConvolutionFilter(Bitmap bitmap, double[,] filter) 
         {
-            var (pixels, resultPixels, stride, format) = GetDataForConvolution(Image);
+            var (pixels, resultPixels, stride, format) = GetDataForConvolution(bitmap);
 
             var filterWidth = filter.GetLength(1);
             var filterOffset = filterWidth / 2;
 
             int index;
-            for (int i = filterOffset; i < Image.Width - filterOffset; i++)
+            for (int i = filterOffset; i < bitmap.Width - filterOffset; i++)
             {
-                for (int j = filterOffset; j < Image.Height - filterOffset; j++)
+                for (int j = filterOffset; j < bitmap.Height - filterOffset; j++)
                 {
                     for (int c = 0; c < format; c++)
                     {
@@ -310,13 +295,19 @@ namespace WebImageConvolution.Services
                                 sum += pixels[index + c] * filter[filterY, filterX];
                             }
                         }
+
+                        if (sum > 255) 
+                        {
+                            sum = 255;
+                        }
+
                         index = j * stride + format * i;
                         resultPixels[index + c] = (byte)sum;
                     }
                 }
             }
 
-            var resultBitmap = GetResultBitmap(Image, resultPixels);
+            var resultBitmap = GetResultBitmap(bitmap, resultPixels);
 
             return resultBitmap;
         }
@@ -364,7 +355,7 @@ namespace WebImageConvolution.Services
             return histogram;
         }
 
-        private static int[] Histogram(byte[] pixels, int stride, int format)
+        private int[] Histogram(byte[] pixels, int stride, int format)
         {
             int[] histogram = new int[256];
             for (int i = 0; i < Image.Width; i++)
@@ -390,18 +381,14 @@ namespace WebImageConvolution.Services
                 ImageLockMode.ReadOnly,
                 bitmap.PixelFormat);
 
-
             byte[] pixels = new byte[sourceData.Stride *
                                           sourceData.Height];
-
 
             byte[] resultPixels = new byte[sourceData.Stride *
                                            sourceData.Height];
 
-
             Marshal.Copy(sourceData.Scan0, pixels, 0,
                                        resultPixels.Length);
-
 
             bitmap.UnlockBits(sourceData);
 
@@ -413,15 +400,15 @@ namespace WebImageConvolution.Services
 
         private static Bitmap GetResultBitmap(Bitmap bitmap, byte[] resultPixels) 
         {
-            Bitmap resultBitmap = new Bitmap(bitmap.Width,
-                                      bitmap.Height);
+            var resultBitmap = new Bitmap(bitmap.Width, bitmap.Height,
+                  bitmap.PixelFormat);
 
 
-            BitmapData resultData =
+            var resultData =
                        resultBitmap.LockBits(new Rectangle(0, 0,
                        resultBitmap.Width, resultBitmap.Height),
                        ImageLockMode.WriteOnly,
-                       bitmap.PixelFormat);
+                       resultBitmap.PixelFormat);
 
 
             Marshal.Copy(resultPixels, 0, resultData.Scan0,
@@ -429,7 +416,6 @@ namespace WebImageConvolution.Services
 
 
             resultBitmap.UnlockBits(resultData);
-
 
             return resultBitmap;
         }    

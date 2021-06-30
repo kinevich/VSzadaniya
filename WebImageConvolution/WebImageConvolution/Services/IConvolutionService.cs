@@ -8,6 +8,7 @@ namespace WebImageConvolution.Services
 {
     public interface IConvolutionService
     {
+        Bitmap Image { get; set; }
         void GrayScale();
         void Blur();
         void Log();

@@ -16,10 +16,12 @@ namespace WebImageConvolution.Controllers
     public class ConvolutionController : Controller
     {
         private readonly IConvolutionService _convolutionService;
+        private readonly IImageDataService _imageDataService;
 
-        public ConvolutionController(IConvolutionService convolutionService)
+        public ConvolutionController(IConvolutionService convolutionService, IImageDataService imageDataService)
         {
             _convolutionService = convolutionService;
+            _imageDataService = imageDataService;
         }
 
         public IActionResult Index()
@@ -83,16 +85,16 @@ namespace WebImageConvolution.Controllers
 
         public IActionResult Reset()
         {
-            ConvolutionService.Image = ImageDataService.OriginalImage;
+            _convolutionService.Image = _imageDataService.OriginalImage;
             return RedirectToAction("Index");
         }
 
         public IActionResult Download()
         {
             var converter = new ImageConverter();
-            var data = (byte[])converter.ConvertTo(ConvolutionService.Image, typeof(byte[]));
+            var data = (byte[])converter.ConvertTo(_convolutionService.Image, typeof(byte[]));
 
-            return File(data, MediaTypeNames.Application.Octet, ImageDataService.Name);
+            return File(data, MediaTypeNames.Application.Octet, _imageDataService.Name);
         }
     }
 }
