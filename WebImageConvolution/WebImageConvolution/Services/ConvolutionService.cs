@@ -16,9 +16,9 @@ namespace WebImageConvolution.Services
         {
             var filter = GetBoxBlurFilterMatrix(3);
 
-            var resultBitmap = ConvolutionFilter(Image, filter);
+            var resultPixels = ConvolutionFilter(Image, filter);
 
-            Image = resultBitmap;
+            Image = GetResultBitmap(Image, resultPixels);
         }
 
         public void GrayScale()
@@ -206,12 +206,10 @@ namespace WebImageConvolution.Services
                                                    { 1 / 9.0, 2 / 9.0, 1 / 9.0 }
             };
 
-            var xImage = ConvolutionFilter(Image, xKernel);
-            var yImage = ConvolutionFilter(Image, yKernel);
-            var (xPixels, _, _, _) = GetDataForConvolution(xImage);
-            var (yPixels, _, _, _) = GetDataForConvolution(yImage);
+            var xPixels = ConvolutionFilter(Image, xKernel);
+            var yPixels = ConvolutionFilter(Image, yKernel);
 
-            for (int i = 0; i < resultPixels.Length; i++) 
+            for (int i = 0; i < resultPixels.Length; i++)
             {
                 double xPixel = xPixels[i];
                 double yPixel = yPixels[i];
@@ -265,12 +263,12 @@ namespace WebImageConvolution.Services
         {
             var filter = GetEdgeDetectionFilterMatrix(3);
 
-            var resultBitmap = ConvolutionFilter(Image, filter);
+            var resultPixels = ConvolutionFilter(Image, filter);
 
-            Image = resultBitmap;
+            Image = GetResultBitmap(Image, resultPixels);
         }
 
-        private static Bitmap ConvolutionFilter(Bitmap bitmap, double[,] filter) 
+        private static byte[] ConvolutionFilter(Bitmap bitmap, double[,] filter) 
         {
             var (pixels, resultPixels, stride, format) = GetDataForConvolution(bitmap);
 
@@ -296,20 +294,13 @@ namespace WebImageConvolution.Services
                             }
                         }
 
-                        if (sum > 255) 
-                        {
-                            sum = 255;
-                        }
-
                         index = j * stride + format * i;
                         resultPixels[index + c] = (byte)sum;
                     }
                 }
             }
 
-            var resultBitmap = GetResultBitmap(bitmap, resultPixels);
-
-            return resultBitmap;
+            return resultPixels;
         }
 
         private static double[,] GetBoxBlurFilterMatrix(int length)
