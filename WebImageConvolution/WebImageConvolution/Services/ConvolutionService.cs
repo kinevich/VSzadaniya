@@ -194,7 +194,7 @@ namespace WebImageConvolution.Services
 
         public void SobelEdges()
         {
-            var (_, resultPixels, _, _) = GetDataForConvolution(Image); 
+            var (pixels, resultPixels, stride, format) = GetDataForConvolution(Image); 
 
             double[,] xKernel = new double[3, 3] { { -1 / 9.0, 0, 1 / 9.0 },
                                                    { -2 / 9.0, 0, 2 / 9.0 },
@@ -205,15 +205,31 @@ namespace WebImageConvolution.Services
                                                    { 0, 0, 0 },
                                                    { 1 / 9.0, 2 / 9.0, 1 / 9.0 }
             };
+            var filterWidth = xKernel.GetLength(1);
+            var filterOffset = (filterWidth - 1) / 2;
 
-            var xPixels = ConvolutionFilter(Image, xKernel);
-            var yPixels = ConvolutionFilter(Image, yKernel);
-
-            for (int i = 0; i < resultPixels.Length; i++)
+            int index;
+            for (int i = filterOffset; i < Image.Width - filterOffset; i++)
             {
-                double xPixel = xPixels[i];
-                double yPixel = yPixels[i];
-                resultPixels[i] = (byte)Math.Sqrt((xPixel * xPixel) + (yPixel * yPixel));
+                for (int j = filterOffset; j < Image.Height - filterOffset; j++)
+                {
+                    for (int c = 0; c < format; c++)
+                    {
+                        double xColor = 0;
+                        double yColor = 0;
+                        for (int filterY = 0; filterY < filterWidth; filterY++)
+                        {
+                            for (int filterX = 0; filterX < filterWidth; filterX++)
+                            {
+                                index = (j + filterY - filterOffset) * stride + format * (i + filterX - filterOffset);
+                                xColor += pixels[index + c] * xKernel[filterY, filterX];
+                                yColor += pixels[index + c] * yKernel[filterY, filterX];
+                            }
+                        }
+                        index = j * stride + format * i;
+                        resultPixels[index + c] = (byte)Math.Sqrt((xColor * xColor) + (yColor * yColor));
+                    }
+                }
             }
 
             var resultBitmap = GetResultBitmap(Image, resultPixels);
