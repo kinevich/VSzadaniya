@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading.Tasks;
+using WebImageConvolution.Helpers;
 using WebImageConvolution.Models;
 using WebImageConvolution.Services;
 
@@ -26,6 +27,10 @@ namespace WebImageConvolution.Controllers
 
         public IActionResult Index()
         {
+            var base64Image = ImageConvertHelper.ImageToBase64String(_convolutionService.Image);
+            string imageDataURL = string.Format("data:image/png;base64,{0}", base64Image);
+
+            ViewData["ConvImage"] = imageDataURL;
             return View();
         }
 
@@ -91,10 +96,9 @@ namespace WebImageConvolution.Controllers
 
         public IActionResult Download()
         {
-            var converter = new ImageConverter();
-            var data = (byte[])converter.ConvertTo(_convolutionService.Image, typeof(byte[]));
+            var imageBytes = ImageConvertHelper.ImageToBytes(_convolutionService.Image);
 
-            return File(data, MediaTypeNames.Application.Octet, _imageDataService.Name);
+            return File(imageBytes, MediaTypeNames.Application.Octet, _imageDataService.Name);
         }
     }
 }
